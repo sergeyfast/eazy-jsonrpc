@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<phpunit backupStaticAttributes="true" bootstrap="bootstrap.php">
+    <testsuites>
+        <testsuite name="Server">
+            <directory suffix="Test.php">.</directory>
+        </testsuite>
+    </testsuites>
+    <groups>
+        <include>
+            <group>Server</group>
+        </include>
+    </groups>
+</phpunit>
