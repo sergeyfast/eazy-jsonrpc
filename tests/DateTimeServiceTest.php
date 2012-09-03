@@ -2,7 +2,7 @@
     /**
      * @group Server
      */
-    class DateTimeServiceTest extends  DateTimeRpcServiceTest {
+    class DateTimeServiceTest extends DateTimeRpcServiceTest {
 
         /**
          * @var BaseJsonRpcServer
@@ -11,8 +11,10 @@
 
         const RequestId = 1;
 
+
         public function setUp() {
             $this->object = new BaseJsonRpcServer( new DateTimeService() );
         }
     }
+
 ?>

@@ -37,6 +37,17 @@
             return $result->format( $format );
         }
 
+
+        /**
+         * Implode Function
+         * @param string $glue
+         * @param array $pieces
+         * @return string string
+         */
+        public function Implode( $glue, $pieces = array( "1", "2", "3" ) ) {
+            return implode( $glue, $pieces );
+        }
+
     }
 
 ?>
