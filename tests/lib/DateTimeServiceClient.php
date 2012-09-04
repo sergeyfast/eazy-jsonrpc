@@ -1,7 +1,8 @@
 <?php
     /**
      * Simple Date Time Service
-     * @author JsonRpcClientGenerator at 03.09.2012 18:32
+     * @author JsonRpcClientGenerator
+     * @date   04.09.2012 8:59
      */
     class DateTimeServiceClient extends BaseJsonRpcClient {
 
@@ -54,6 +55,7 @@
 
         /**
          * Get Instance
+         * @return DateTimeServiceClient
          */
         public function GetInstance() {
             return new self( 'http://eazyjsonrpc/example-server.php' );

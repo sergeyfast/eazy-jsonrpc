@@ -57,7 +57,8 @@
 <?php
     /**
      * {$description}
-     * @author JsonRpcClientGenerator at {$date}
+     * @author JsonRpcClientGenerator
+     * @date {$date}
      */
     class {$this->className} extends BaseJsonRpcClient {
 php;
@@ -169,6 +170,7 @@ php;
 
         /**
          * Get Instance
+         * @return {$this->className}
          */
         public function GetInstance() {
             return new self( '{$url}' );
