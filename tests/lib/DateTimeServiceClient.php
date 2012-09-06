@@ -57,7 +57,7 @@
          * Get Instance
          * @return DateTimeServiceClient
          */
-        public function GetInstance() {
+        public static function GetInstance() {
             return new self( 'http://eazyjsonrpc/example-server.php' );
         }
 

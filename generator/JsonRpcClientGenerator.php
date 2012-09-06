@@ -115,7 +115,7 @@ php;
                         $strParam .= sprintf( ' = %s', var_export( $param['default'], true ) );
                     }
 
-                    $strDocParams .= implode( ' ', $strDocParamsArr );
+                    $strDocParams .= rtrim( implode( ' ', $strDocParamsArr ) );
                     $strParamsArr[]       = $strParam;
                     $callParamsArr[$name] = sprintf( "'%s' => $%s", $name, $name );
                 }
@@ -172,7 +172,7 @@ php;
          * Get Instance
          * @return {$this->className}
          */
-        public function GetInstance() {
+        public static function GetInstance() {
             return new self( '{$url}' );
         }
 
