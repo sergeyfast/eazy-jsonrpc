@@ -342,7 +342,7 @@
 
                 // Set Content Type
                 if ( $this->ContentType ) {
-                    header( 'Content-Type: ', $this->ContentType );
+                    header( 'Content-Type: '. $this->ContentType );
                 }
 
                 // Allow Cross Domain Requests
