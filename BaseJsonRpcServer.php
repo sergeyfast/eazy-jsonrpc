@@ -274,7 +274,7 @@
                 return $this->getError( $e->getCode(), $id, $e->getMessage() );
             }
 
-            if ( !$id ) {
+            if ( !$id && $id !== 0 ) {
                 return null;
             }
 
