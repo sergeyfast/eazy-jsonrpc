@@ -11,6 +11,11 @@
     "autoload": {
         "files": ["BaseJsonRpcClient.php", "BaseJsonRpcServer.php", "generator/JsonRpcClientGenerator.php"]
     },
+    "extra": {
+        "branch-alias": {
+            "0.0.1": "master"
+        }
+    },
     "minimum-stability": "stable",
     "require": {}
 }
