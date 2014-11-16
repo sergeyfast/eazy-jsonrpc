@@ -1,0 +1,13 @@
+{
+    "name": "sergeyfast/eazy-jsonrpc",
+    "description": "PHP JSON-RPC 2.0 Server/Client Implementation with Automatic Client Class Generation via SMD",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sergey Fast",
+            "email": "some.email@here.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
