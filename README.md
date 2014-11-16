@@ -7,7 +7,7 @@ Server
 ------
 
 * Inherits your exposed class from BaseJsonRpcServer or create `new BaseJsonRpcServer( $instance );`
-* `$server->execute();`
+* `$server->Execute();`
 
 SMD Schema available via /server.php?smd
 
