@@ -9,7 +9,7 @@
         }
     ],
     "autoload": {
-        "files": ["BaseJsonRpcClient.php", "BaseJsonRpcServer.php", "generator/JsonRpcClientGenerator.php"]
+        "files": ["BaseJsonRpcClient.php", "BaseJsonRpcServer.php"]
     },
     "minimum-stability": "dev",
     "require": {}
