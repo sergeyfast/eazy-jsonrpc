@@ -1,4 +1,6 @@
 <?php
+
+
     /**
      * Base JSON-RPC 2.0 Client
      * @package    Eaze
@@ -19,9 +21,9 @@
          * @var array
          */
         public $CurlOptions = array(
-            CURLOPT_POST             => 1
-            , CURLOPT_RETURNTRANSFER => 1
-            , CURLOPT_HTTPHEADER     => array( 'Content-Type' => 'application/json' )
+            CURLOPT_POST           => 1,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_HTTPHEADER     => array( 'Content-Type' => 'application/json' ),
         );
 
         /**
@@ -121,7 +123,8 @@
          * @return mixed
          */
         protected function call( $method, $parameters = array(), $id = null ) {
-            $call = new BaseJsonRpcCall( $method, $parameters, $id );
+            $method = str_replace( '_', '.', $method );
+            $call   = new BaseJsonRpcCall( $method, $parameters, $id );
             if ( $this->isBatchCall ) {
                 if ( $call->Id ) {
                     $this->batchCalls[$call->Id] = $call;
@@ -139,7 +142,7 @@
         /**
          * Process Magic Call
          * @param string $method
-         * @param array $parameters
+         * @param array  $parameters
          * @return BaseJsonRpcCall
          */
         public function __call( $method, $parameters = array() ) {
@@ -163,7 +166,7 @@
             curl_setopt_array( $ch, $options );
 
             $data = curl_exec( $ch );
-            $data = json_decode( $data, ! $this->UseObjectsInResults );
+            $data = json_decode( $data, !$this->UseObjectsInResults );
             curl_close( $ch );
             if ( $data === null ) {
                 return false;
@@ -173,7 +176,7 @@
             if ( $this->batchCalls ) {
                 foreach ( $data as $dataCall ) {
                     // Problem place?
-                    $key  = $this->UseObjectsInResults ? $dataCall->id : $dataCall['id'];
+                    $key = $this->UseObjectsInResults ? $dataCall->id : $dataCall['id'];
                     $this->batchCalls[$key]->SetResult( $dataCall, $this->UseObjectsInResults );
                 }
             } else {
@@ -239,10 +242,10 @@
          */
         public static function GetCallData( BaseJsonRpcCall $call ) {
             return array(
-                'jsonrpc'  => '2.0'
-                , 'id'     => $call->Id
-                , 'method' => $call->Method
-                , 'params' => $call->Params
+                'jsonrpc' => '2.0',
+                'id'      => $call->Id,
+                'method'  => $call->Method,
+                'params'  => $call->Params,
             );
         }
 
@@ -263,4 +266,3 @@
         }
     }
 
-?>

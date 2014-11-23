@@ -1,31 +1,29 @@
 <?php
+
+
     /**
      * JSON RPC Server for Eaze
      *
      * Reads $_GET['rawRequest'] or php://input for Request Data
-     * @link http://www.jsonrpc.org/specification
-     * @link http://dojotoolkit.org/reference-guide/1.8/dojox/rpc/smd.html
+     * @link       http://www.jsonrpc.org/specification
+     * @link       http://dojotoolkit.org/reference-guide/1.8/dojox/rpc/smd.html
      * @package    Eaze
      * @subpackage Model
      * @author     Sergeyfast
      */
     class BaseJsonRpcServer {
 
-    	const ParseError	 = -32700;
-
-        const InvalidRequest = -32600;
-
-        const MethodNotFound = -32601;
-
-        const InvalidParams  = -32602;
-
-        const InternalError  = -32603;
+        const ParseError = -32700,
+            InvalidRequest = -32600,
+            MethodNotFound = -32601,
+            InvalidParams = -32602,
+            InternalError = -32603;
 
         /**
-         * Exposed Instance
-         * @var object
+         * Exposed Instances
+         * @var object[]    namespace => method
          */
-        protected $instance;
+        protected $instances = array();
 
         /**
          * Decoded Json Request
@@ -72,7 +70,7 @@
         public $ContentType = 'application/json';
 
         /**
-         * Alow Cross-Domain Requests
+         * Allow Cross-Domain Requests
          * @var bool
          */
         public $IsXDR = true;
@@ -82,11 +80,11 @@
          * @var array
          */
         protected $errorMessages = array(
-            self::ParseError       => 'Parse error'
-            , self::InvalidRequest => 'Invalid Request'
-            , self::MethodNotFound => 'Method not found'
-            , self::InvalidParams  => 'Invalid params'
-            , self::InternalError  => 'Internal error'
+            self::ParseError     => 'Parse error',
+            self::InvalidRequest => 'Invalid Request',
+            self::MethodNotFound => 'Method not found',
+            self::InvalidParams  => 'Invalid params',
+            self::InternalError  => 'Internal error',
         );
 
 
@@ -95,6 +93,7 @@
          * @var ReflectionMethod[]
          */
         private $reflectionMethods = array();
+
 
         /**
          * Validate Request
@@ -143,13 +142,13 @@
          */
         private function getError( $code, $id = null, $data = null ) {
             return array(
-                'jsonrpc' => '2.0'
-                , 'error' => array(
-                    'code'      => $code
-                    , 'message' => isset( $this->errorMessages[$code] ) ? $this->errorMessages[$code] : $this->errorMessages[self::InternalError]
-                    , 'data'    => $data
-                )
-                , 'id' => $id
+                'jsonrpc' => '2.0',
+                'id'      => $id,
+                'error'   => array(
+                    'code'    => $code,
+                    'message' => isset( $this->errorMessages[$code] ) ? $this->errorMessages[$code] : $this->errorMessages[self::InternalError],
+                    'data'    => $data,
+                ),
             );
         }
 
@@ -182,18 +181,21 @@
                     break;
                 }
 
-                $method = property_exists( $call, 'method' ) ? $call->method : null;
-                if ( !$method || !method_exists( $this->instance, $method ) || in_array( strtolower( $method ), $this->hiddenMethods ) ) {
+                $fullMethod = property_exists( $call, 'method' ) ? $call->method : '';
+                $methodInfo = explode( '.', $fullMethod, 2 );
+                $namespace  = array_key_exists( 1, $methodInfo ) ? $methodInfo[0] : '';
+                $method     = $namespace ? $methodInfo[1] : $fullMethod;
+                if ( !$method || !method_exists( $this->instances[$namespace], $method ) || in_array( strtolower( $method ), $this->hiddenMethods ) ) {
                     $error = self::MethodNotFound;
                     break;
                 }
 
-                if ( !array_key_exists( $method, $this->reflectionMethods ) ) {
-                    $this->reflectionMethods[$method] = new ReflectionMethod( $this->instance, $method );
+                if ( !array_key_exists( $fullMethod, $this->reflectionMethods ) ) {
+                    $this->reflectionMethods[$fullMethod] = new ReflectionMethod( $this->instances[$namespace], $method );
                 }
 
                 /** @var $params array */
-                $params     = property_exists( $call, 'params' ) ? $call->params: null;
+                $params     = property_exists( $call, 'params' ) ? $call->params : null;
                 $paramsType = gettype( $params );
                 if ( $params !== null && $paramsType != 'array' && $paramsType != 'object' ) {
                     $error = self::InvalidParams;
@@ -201,24 +203,24 @@
                 }
 
                 // check parameters
-                switch( $paramsType ) {
+                switch ( $paramsType ) {
                     case 'array':
                         $totalRequired = 0;
                         // doesn't hold required, null, required sequence of params
-                        foreach( $this->reflectionMethods[$method]->getParameters() as $param ) {
+                        foreach ( $this->reflectionMethods[$fullMethod]->getParameters() as $param ) {
                             if ( !$param->isDefaultValueAvailable() ) {
-                                $totalRequired ++;
+                                $totalRequired++;
                             }
                         }
 
                         if ( count( $params ) < $totalRequired ) {
                             $error = self::InvalidParams;
-                            $data  = sprintf( 'Check numbers of required params (got %d, expected %d)', count( $params ), $totalRequired  );
+                            $data  = sprintf( 'Check numbers of required params (got %d, expected %d)', count( $params ), $totalRequired );
                         }
                         break;
                     case 'object':
-                        foreach( $this->reflectionMethods[$method]->getParameters() as $param ) {
-                            if ( !$param->isDefaultValueAvailable()  && !array_key_exists( $param->getName(), $params ) ) {
+                        foreach ( $this->reflectionMethods[$fullMethod]->getParameters() as $param ) {
+                            if ( !$param->isDefaultValueAvailable() && !array_key_exists( $param->getName(), $params ) ) {
                                 $error = self::InvalidParams;
                                 $data  = $param->getName() . ' not found';
 
@@ -227,7 +229,7 @@
                         }
                         break;
                     case 'NULL':
-                        if ( $this->reflectionMethods[$method]->getNumberOfRequiredParameters() > 0  ) {
+                        if ( $this->reflectionMethods[$fullMethod]->getNumberOfRequiredParameters() > 0 ) {
                             $error = self::InvalidParams;
                             $data  = 'Empty required params';
                             break 2;
@@ -235,7 +237,7 @@
                         break;
                 }
 
-            } while( false );
+            } while ( false );
 
             if ( $error ) {
                 $result = array( $error, $id, $data );
@@ -251,15 +253,16 @@
          * @return array|null
          */
         private function processCall( $call ) {
-            $id     = property_exists( $call, 'id' ) ? $call->id : null;
-            $params = property_exists( $call, 'params' ) ? $call->params : array();
-            $result = null;
+            $id        = property_exists( $call, 'id' ) ? $call->id : null;
+            $params    = property_exists( $call, 'params' ) ? $call->params : array();
+            $result    = null;
+            $namespace = substr( $call->method, 0, strpos( $call->method, '.' ) );
 
             try {
                 // set named parameters
                 if ( is_object( $params ) ) {
                     $newParams = array();
-                    foreach($this->reflectionMethods[$call->method]->getParameters() as $param) {
+                    foreach ( $this->reflectionMethods[$call->method]->getParameters() as $param ) {
                         $paramName    = $param->getName();
                         $defaultValue = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
                         $newParams[]  = property_exists( $params, $paramName ) ? $params->$paramName : $defaultValue;
@@ -269,7 +272,7 @@
                 }
 
                 // invoke
-                $result = $this->reflectionMethods[$call->method]->invokeArgs( $this->instance, $params );
+                $result = $this->reflectionMethods[$call->method]->invokeArgs( $this->instances[$namespace], $params );
             } catch ( Exception $e ) {
                 return $this->getError( $e->getCode(), $id, $e->getMessage() );
             }
@@ -279,9 +282,9 @@
             }
 
             return array(
-                'jsonrpc'  => '2.0'
-                , 'result' => $result
-                , 'id'     => $id
+                'jsonrpc' => '2.0',
+                'result'  => $result,
+                'id'      => $id,
             );
         }
 
@@ -292,11 +295,24 @@
          */
         public function __construct( $instance = null ) {
             if ( get_parent_class( $this ) ) {
-                $this->instance = $this;
-            } else {
-                $this->instance = $instance;
-                $this->instance->errorMessages = $this->errorMessages;
+                $this->RegisterInstance( $this, '' );
+            } else if ( $instance ) {
+                $this->RegisterInstance( $instance, '' );
             }
+        }
+
+
+        /**
+         * Register Instance
+         * @param object $instance
+         * @param string $namespace default is empty string
+         * @return $this
+         */
+        public function RegisterInstance( $instance, $namespace = '' ) {
+            $this->instances[$namespace] =  $instance;
+            $this->instances[$namespace]->errorMessages = $this->errorMessages;
+
+            return $this;
         }
 
 
@@ -307,8 +323,8 @@
             do {
                 // check for SMD Discovery request
                 if ( array_key_exists( 'smd', $_GET ) ) {
-                    $this->response[]   = $this->getServiceMap();
-                    $this->hasCalls    = true;
+                    $this->response[] = $this->getServiceMap();
+                    $this->hasCalls   = true;
                     break;
                 }
 
@@ -319,7 +335,7 @@
                     break;
                 }
 
-                foreach( $this->calls as $call ) {
+                foreach ( $this->calls as $call ) {
                     $error = $this->validateCall( $call );
                     if ( $error ) {
                         $this->response[] = $this->getError( $error[0], $error[1], $error[2] );
@@ -332,7 +348,7 @@
                         }
                     }
                 }
-            } while( false );
+            } while ( false );
 
             // flush response
             if ( $this->hasCalls ) {
@@ -340,15 +356,17 @@
                     $this->response = reset( $this->response );
                 }
 
-                // Set Content Type
-                if ( $this->ContentType ) {
-                    header( 'Content-Type: '. $this->ContentType );
-                }
+                if ( !headers_sent() ) {
+                    // Set Content Type
+                    if ( $this->ContentType ) {
+                        header( 'Content-Type: ' . $this->ContentType );
+                    }
 
-                // Allow Cross Domain Requests
-                if ( $this->IsXDR ) {
-                    header( 'Access-Control-Allow-Origin: *' );
-                    header( 'Access-Control-Allow-Headers: x-requested-with, content-type' );
+                    // Allow Cross Domain Requests
+                    if ( $this->IsXDR ) {
+                        header( 'Access-Control-Allow-Origin: *' );
+                        header( 'Access-Control-Allow-Headers: x-requested-with, content-type' );
+                    }
                 }
 
                 echo json_encode( $this->response );
@@ -364,8 +382,8 @@
          */
         private function getDocDescription( $comment ) {
             $result = null;
-            if (  preg_match('/\*\s+([^@]*)\s+/s', $comment, $matches ) ) {
-                $result = str_replace( '*' , "\n", trim( trim( $matches[1], '*' ) ) );
+            if ( preg_match( '/\*\s+([^@]*)\s+/s', $comment, $matches ) ) {
+                $result = str_replace( '*', "\n", trim( trim( $matches[1], '*' ) ) );
             }
 
             return $result;
@@ -378,70 +396,73 @@
          * @return array
          */
         private function getServiceMap() {
-            $rc     = new ReflectionClass( $this->instance );
             $result = array(
-                'transport'     => 'POST'
-                , 'envelope'    => 'JSON-RPC-2.0'
-                , 'SMDVersion'  => '2.0'
-                , 'contentType' => 'application/json'
-                , 'target'      => !empty( $_SERVER['REQUEST_URI'] ) ? substr( $_SERVER['REQUEST_URI'], 0,strpos( $_SERVER['REQUEST_URI'], '?') ) : ''
-                , 'services'    => array()
-                , 'description' => ''
+                'transport'   => 'POST',
+                'envelope'    => 'JSON-RPC-2.0',
+                'SMDVersion'  => '2.0',
+                'contentType' => 'application/json',
+                'target'      => !empty( $_SERVER['REQUEST_URI'] ) ? substr( $_SERVER['REQUEST_URI'], 0, strpos( $_SERVER['REQUEST_URI'], '?' ) ) : '',
+                'services'    => array(),
+                'description' => '',
             );
 
-            // Get Class Description
-            if ( $rcDocComment = $this->getDocDescription( $rc->getDocComment()) ) {
-                $result['description'] = $rcDocComment;
-            }
+            foreach( $this->instances as $namespace => $instance ) {
+                $rc = new ReflectionClass( $instance);
 
-            foreach( $rc->getMethods() as $method ) {
-                /** @var ReflectionMethod $method */
-                if ( !$method->isPublic() || in_array( strtolower( $method->getName() ), $this->hiddenMethods ) ) {
-                    continue;
+                // Get Class Description
+                if ( $rcDocComment = $this->getDocDescription( $rc->getDocComment() ) ) {
+                    $result['description'] .= $rcDocComment . PHP_EOL;
                 }
 
-                $methodName = $method->getName();
-                $docComment = $method->getDocComment();
-
-                $result['services'][$methodName] = array( 'parameters' => array() );
-
-                // set description
-                if ( $rmDocComment = $this->getDocDescription( $docComment ) ) {
-                    $result['services'][$methodName]['description'] = $rmDocComment;
-                }
-
-                // @param\s+([^\s]*)\s+([^\s]*)\s*([^\s\*]*)
-                $parsedParams = array();
-                if ( preg_match_all('/@param\s+([^\s]*)\s+([^\s]*)\s*([^\n\*]*)/', $docComment, $matches ) ) {
-                    foreach( $matches[2] as $number => $name ) {
-                        $type = $matches[1][$number];
-                        $desc = $matches[3][$number];
-                        $name = trim( $name, '$' );
-
-                        $param = array( 'type' => $type, 'description' => $desc );
-                        $parsedParams[$name] = array_filter( $param );
-                    }
-                };
-
-                // process params
-                foreach ( $method->getParameters() as $parameter ) {
-                    $name  = $parameter->getName();
-                    $param = array( 'name' => $name, 'optional' => $parameter->isDefaultValueAvailable() );
-                    if ( array_key_exists( $name, $parsedParams ) ) {
-                        $param += $parsedParams[$name];
+                foreach ( $rc->getMethods() as $method ) {
+                    /** @var ReflectionMethod $method */
+                    if ( !$method->isPublic() || in_array( strtolower( $method->getName() ), $this->hiddenMethods ) ) {
+                        continue;
                     }
 
-                    if ( $param['optional'] ) {
-                        $param['default']  = $parameter->getDefaultValue();
+                    $methodName = ( $namespace ? $namespace . '.' : '' ) . $method->getName();
+                    $docComment = $method->getDocComment();
+
+                    $result['services'][$methodName] = array( 'parameters' => array() );
+
+                    // set description
+                    if ( $rmDocComment = $this->getDocDescription( $docComment ) ) {
+                        $result['services'][$methodName]['description'] = $rmDocComment;
                     }
 
-                    $result['services'][$methodName]['parameters'][] = $param;
-                }
+                    // @param\s+([^\s]*)\s+([^\s]*)\s*([^\s\*]*)
+                    $parsedParams = array();
+                    if ( preg_match_all( '/@param\s+([^\s]*)\s+([^\s]*)\s*([^\n\*]*)/', $docComment, $matches ) ) {
+                        foreach ( $matches[2] as $number => $name ) {
+                            $type = $matches[1][$number];
+                            $desc = $matches[3][$number];
+                            $name = trim( $name, '$' );
 
-                // set return type
-                if ( preg_match('/@return\s+([^\s]+)\s*([^\n\*]+)/', $docComment, $matches ) ) {
-                    $returns = array( 'type' => $matches[1], 'description' => trim( $matches[2] ) );
-                    $result['services'][$methodName]['returns'] = array_filter( $returns );
+                            $param               = array( 'type' => $type, 'description' => $desc );
+                            $parsedParams[$name] = array_filter( $param );
+                        }
+                    };
+
+                    // process params
+                    foreach ( $method->getParameters() as $parameter ) {
+                        $name  = $parameter->getName();
+                        $param = array( 'name' => $name, 'optional' => $parameter->isDefaultValueAvailable() );
+                        if ( array_key_exists( $name, $parsedParams ) ) {
+                            $param += $parsedParams[$name];
+                        }
+
+                        if ( $param['optional'] ) {
+                            $param['default'] = $parameter->getDefaultValue();
+                        }
+
+                        $result['services'][$methodName]['parameters'][] = $param;
+                    }
+
+                    // set return type
+                    if ( preg_match( '/@return\s+([^\s]+)\s*([^\n\*]+)/', $docComment, $matches ) ) {
+                        $returns                                    = array( 'type' => $matches[1], 'description' => trim( $matches[2] ) );
+                        $result['services'][$methodName]['returns'] = array_filter( $returns );
+                    }
                 }
             }
 
@@ -458,5 +479,3 @@
         }
 
     }
-
-?>

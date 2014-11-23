@@ -1,4 +1,6 @@
 <?php
+
+
     /**
      * @group Server
      */
@@ -16,5 +18,3 @@
             $this->object = new BaseJsonRpcServer( new DateTimeService() );
         }
     }
-
-?>

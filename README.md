@@ -6,10 +6,19 @@ PHP JSON-RPC 2.0 Server/Client Implementation with Automatic Client Class Genera
 Server
 ------
 
+SMD Schema available via /server.php?smd
+
+__Public Namespace__
+
 * Inherits your exposed class from BaseJsonRpcServer or create `new BaseJsonRpcServer( $instance );`
 * `$server->execute();`
 
-SMD Schema available via /server.php?smd
+__Multiple Namespaces__
+
+* Create `new BaseJsonRpcServer();`
+* Call `$server->RegisterInstance( $instance, $namespace )` as many times as you need
+* `$server->execute();`
+
 
 Client
 ------

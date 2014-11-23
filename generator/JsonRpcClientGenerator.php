@@ -1,7 +1,7 @@
 <?php
     /// JSON-RPC 2.0 Proxy Class Generator
     if ( empty( $argv[1] ) || empty( $argv[2] ) ) {
-        printf( 'Usage: %s <smd-file|url> <ClassName>', $argv[0] );
+        printf( 'Usage: %s <smd-file|url> <ClassName>' . PHP_EOL, $argv[0] );
         die();
     }
 
@@ -10,7 +10,7 @@
     $smd       = json_decode( file_get_contents( $url ), true );
 
     if ( $smd === null ) {
-        die( "Couldn't parse SMD file or URL! " );
+        die( "Couldn't parse SMD file or URL! " . PHP_EOL );
     }
 
     // go below
@@ -52,6 +52,7 @@
          */
         private function getHeader() {
             $description = !empty( $this->smd['description'] ) ? $this->smd['description'] : $this->className;
+            $description = str_replace( "\n", PHP_EOL . '     * ', $description );
             $date        = date( 'd.m.Y G:i' );
             $result      = <<<php
 <?php
@@ -76,17 +77,17 @@ php;
             $newDocLine    = PHP_EOL . str_repeat( ' ', 9 ) . '*';
             $description   = !empty( $methodData['description'] ) ? $methodData['description'] : $methodName;
             $strDocParams  = '';
-            $strParams     = '';
             $strParamsArr  = array();
             $callParamsArr = array();
+            $methodName    = str_replace( '.', '_', $methodName );
 
             // Add Default Parameter = IsNotification
             $methodData['parameters'][] = array(
-                'name'          => 'isNotification'
-                , 'optional'    => 'true'
-                , 'type'        => 'bool'
-                , 'default'     => false
-                , 'description' => 'set to true if call is notification'
+                'name'        => 'isNotification',
+                'optional'    => 'true',
+                'type'        => 'bool',
+                'default'     => false,
+                'description' => 'set to true if call is notification',
             );
 
             // params
@@ -122,11 +123,11 @@ php;
             }
 
             $strParams = ' ' . trim(
-                str_replace(
-                    array( "\n", ',)', 'array (' )
-                    , array( '', ')', 'array(' )
-                    , implode( ', ', $strParamsArr )
-                ), ', ' ) . ' ';
+                    str_replace(
+                        array( "\n", ',)', 'array (' ),
+                        array( '', ')', 'array(' ),
+                        implode( ', ', $strParamsArr )
+                    ), ', ' ) . ' ';
 
             unset( $callParamsArr['isNotification'] );
 
@@ -139,6 +140,8 @@ php;
             if ( !empty( $callParamsStr ) ) {
                 $callParamsStr = sprintf( ' %s ', $callParamsStr );
             }
+
+
 
 
             $result = <<<php
@@ -177,7 +180,6 @@ php;
         }
 
     }
-?>
 php;
 
             return $result;
@@ -210,8 +212,8 @@ php;
         }
     }
 
+
     $g = new JsonRpcClientGenerator( $url, $smd, $className );
     if ( $g->SaveToFile() ) {
         printf( 'Done!' );
     }
-?>

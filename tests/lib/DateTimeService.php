@@ -1,4 +1,6 @@
 <?php
+
+
     /**
      * Simple Date Time Service
      */
@@ -27,7 +29,7 @@
 
         /**
          * Get Relative time
-         * @param string $text    a date/time string
+         * @param string $text a date/time string
          * @param string $timezone
          * @param string $format
          * @return string
@@ -41,7 +43,7 @@
         /**
          * Implode Function
          * @param string $glue
-         * @param array $pieces
+         * @param array  $pieces
          * @return string string
          */
         public function Implode( $glue, $pieces = array( "1", "2", "3" ) ) {
@@ -49,5 +51,3 @@
         }
 
     }
-
-?>

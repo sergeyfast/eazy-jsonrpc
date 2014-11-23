@@ -1,4 +1,6 @@
 <?php
+
+
     /**
      * @group Server
      */
@@ -29,12 +31,12 @@
 
 
         public function testGetTime() {
-            $request  = array( 'jsonrpc' => '2.0', 'method'=> 'GetTime', 'id' => self::RequestId );
+            $request  = array( 'jsonrpc' => '2.0', 'method' => 'GetTime', 'id' => self::RequestId );
             $response = $this->call( $request );
             $this->assertArrayHasKey( 'result', $response );
             $this->assertEquals( $response['id'], self::RequestId );
 
-            $request  = array( 'jsonrpc' => '2.0', 'method'=> 'GetTime', 'params' => array( 'format' => 'd.m.Y' ), 'id' => self::RequestId );
+            $request  = array( 'jsonrpc' => '2.0', 'method' => 'GetTime', 'params' => array( 'format' => 'd.m.Y' ), 'id' => self::RequestId );
             $response = $this->call( $request );
             $this->assertArrayHasKey( 'result', $response );
             $this->assertEquals( date( 'd.m.Y' ), $response['result'] );
@@ -43,7 +45,7 @@
 
 
         public function testGetTimeWithoutNamedParams() {
-            $request  = array( 'jsonrpc' => '2.0', 'method'=> 'GetTime', 'params' => array( 'UTC', 'd.m.Y' ), 'id' => self::RequestId );
+            $request  = array( 'jsonrpc' => '2.0', 'method' => 'GetTime', 'params' => array( 'UTC', 'd.m.Y' ), 'id' => self::RequestId );
             $response = $this->call( $request );
             $this->assertArrayHasKey( 'result', $response );
             $this->assertEquals( date( 'd.m.Y' ), $response['result'] );
@@ -60,14 +62,14 @@
 
 
         public function testGetTimeZones() {
-            $request  = array( 'jsonrpc' => '2.0', 'method'=> 'GetTimeZones', 'id' => self::RequestId );
+            $request  = array( 'jsonrpc' => '2.0', 'method' => 'GetTimeZones', 'id' => self::RequestId );
             $response = $this->call( $request );
             $this->assertEquals( getCachedTimeZones(), $response['result'] );
         }
 
 
         public function testGetRelativeTimeError() {
-            $request  = array( 'jsonrpc' => '2.0', 'method'=> 'GetRelativeTime', 'id' => self::RequestId );
+            $request  = array( 'jsonrpc' => '2.0', 'method' => 'GetRelativeTime', 'id' => self::RequestId );
             $response = $this->call( $request );
             $this->assertArrayHasKey( 'error', $response );
             $this->assertEquals( BaseJsonRpcServer::InvalidParams, $response['error']['code'] );
@@ -86,14 +88,14 @@
 
 
         public function testBatchCalls() {
-            $request1 = array( 'jsonrpc' => '2.0', 'method'=> 'GetRelativeTime', 'params' => array( 'now' ), 'id' => self::RequestId );
-            $request2 = array( 'jsonrpc' => '2.0', 'method'=> 'GetRelativeTime', 'params' => array( 'yesterday' ), 'id' => self::RequestId + 1 );
-            $request3 = array( 'jsonrpc' => '2.0', 'method'=> 'GetRelativeTime', 'params' => array( 'yesterday' ) );
-            $request4 = array( 'jsonrpc' => '2.0', 'method'=> 'Implode', 'params' => array( ';' ), 'id' => self::RequestId + 2 );
+            $request1 = array( 'jsonrpc' => '2.0', 'method' => 'GetRelativeTime', 'params' => array( 'now' ), 'id' => self::RequestId );
+            $request2 = array( 'jsonrpc' => '2.0', 'method' => 'GetRelativeTime', 'params' => array( 'yesterday' ), 'id' => self::RequestId + 1 );
+            $request3 = array( 'jsonrpc' => '2.0', 'method' => 'GetRelativeTime', 'params' => array( 'yesterday' ) );
+            $request4 = array( 'jsonrpc' => '2.0', 'method' => 'Implode', 'params' => array( ';' ), 'id' => self::RequestId + 2 );
             $response = $this->call( array( $request1, $request2, $request3, $request4 ) );
             $this->assertCount( 3, $response );
 
-            foreach( $response as $r ) {
+            foreach ( $response as $r ) {
                 if ( $r['id'] == self::RequestId + 2 ) {
                     $this->assertEquals( '1;2;3', $r['result'] );
                 }
@@ -101,5 +103,3 @@
         }
 
     }
-
-?>

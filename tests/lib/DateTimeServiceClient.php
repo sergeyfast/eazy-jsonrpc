@@ -1,4 +1,6 @@
 <?php
+
+
     /**
      * Simple Date Time Service
      * @author JsonRpcClientGenerator
@@ -58,9 +60,7 @@
          * @return DateTimeServiceClient
          */
         public static function GetInstance() {
-            return new self( 'http://eazyjsonrpc/example-server.php' );
+            return new self( 'http://eazyjsonrpc/tests/example-server.php' );
         }
 
     }
-
-?>

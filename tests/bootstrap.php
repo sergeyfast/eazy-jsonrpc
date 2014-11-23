@@ -1,8 +1,9 @@
 <?php
-    include '../BaseJsonRpcServer.php';
-    include '../BaseJsonRpcClient.php';
+    include '../src/BaseJsonRpcServer.php';
+    include '../src/BaseJsonRpcClient.php';
     include 'lib/DateTimeService.php';
     include 'lib/DateTimeServiceClient.php';
+    include 'lib/DatePingServiceClient.php';
     include 'lib/DateTimeRpcService.php';
 
     /**
@@ -16,4 +17,3 @@
 
         return $result;
     }
-?>
