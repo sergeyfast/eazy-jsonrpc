@@ -43,7 +43,7 @@
         /**
          * Implode Function
          * @param string $glue
-         * @param array  $pieces
+         * @param string[]  $pieces
          * @return string string
          */
         public function Implode( $glue, $pieces = array( '1', '2', '3' ) ) {

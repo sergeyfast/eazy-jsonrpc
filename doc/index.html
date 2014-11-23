@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Sandbox</title>
+    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
+    <link rel="stylesheet" href="css/reset.css"/>
+    <link rel="stylesheet" href="css/screen.css"/>
+    <script src="js/shred.bundle.js"></script>
+    <script src="js/jquery-1.8.0.min.js"></script>
+    <script src="js/jquery.slideto.min.js"></script>
+    <script src="js/jquery.wiggle.min.js"></script>
+    <script src="js/jquery.ba-bbq.min.js"></script>
+    <script src="js/handlebars-1.0.0.js"></script>
+    <script src="js/underscore-min.js"></script>
+    <script src="js/backbone-min.js"></script>
+    <script src="js/swagger.js"></script>
+    <script src="js/swagger-client.js"></script>
+    <script src="js/highlight.7.3.pack.js"></script>
+    <script src="js/swagger-ui.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            window.swaggerUi = new SwaggerUi({
+                url: '/doc/swagger.json',
+                dom_id: "swagger-ui-container",
+                supportedSubmitMethods: ['post'],
+                debug: 'true',
+                onComplete: function (swaggerApi, swaggerUi) {
+                    log("Loaded SwaggerUI");
+                    $('pre code').each(function (i, e) {
+                        hljs.highlightBlock(e)
+                    });
+                },
+                onFailure: function (data) {
+                    log("Unable to Load SwaggerUI");
+                },
+                docExpansion: "list",
+                sorter: "alpha"
+            });
+
+            window.swaggerUi.load();
+        });
+    </script>
+</head>
+<body class="swagger-section">
+<div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
+<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+</body>
+</html>

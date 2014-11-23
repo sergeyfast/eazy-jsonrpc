@@ -60,7 +60,7 @@
          * @var array
          */
         protected $hiddenMethods = array(
-            'execute', '__construct'
+            'execute', '__construct', 'registerinstance'
         );
 
         /**
@@ -185,7 +185,7 @@
                 $methodInfo = explode( '.', $fullMethod, 2 );
                 $namespace  = array_key_exists( 1, $methodInfo ) ? $methodInfo[0] : '';
                 $method     = $namespace ? $methodInfo[1] : $fullMethod;
-                if ( !$method || !method_exists( $this->instances[$namespace], $method ) || in_array( strtolower( $method ), $this->hiddenMethods ) ) {
+                if ( !$method || !array_key_exists( $namespace, $this->instances ) || !method_exists( $this->instances[$namespace], $method ) || in_array( strtolower( $method ), $this->hiddenMethods ) ) {
                     $error = self::MethodNotFound;
                     break;
                 }
@@ -309,7 +309,7 @@
          * @return $this
          */
         public function RegisterInstance( $instance, $namespace = '' ) {
-            $this->instances[$namespace] =  $instance;
+            $this->instances[$namespace]                = $instance;
             $this->instances[$namespace]->errorMessages = $this->errorMessages;
 
             return $this;

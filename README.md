@@ -26,3 +26,9 @@ Client
 * Generate Client from SMD Schema from generator/ `php JsonRpcClientGenerator <smd-file> <class-name>`
 * Create client instance `$client = <class-name>::GetInstance();` or `$client = new <class-name>( <url> );`
 * Use it `$result = $client->Method()`; :)
+
+Doc
+------
+* cd doc
+* `php SmdToSwaggerConverter.php 'http://eazyjsonrpc/tests/example-server.php?smd&v2' eazyjsonrpc ../doc/swagger.json`
+* open http://eazyjsonrpc/doc/
