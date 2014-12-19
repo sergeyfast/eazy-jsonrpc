@@ -152,7 +152,10 @@
 
         /**
          * Process Calls
+         *
          * @param BaseJsonRpcCall[] $calls
+         *
+         * @throws \Exception
          * @return mixed
          */
         protected function processCalls( $calls ) {
@@ -166,6 +169,12 @@
             curl_setopt_array( $ch, $options );
 
             $data = curl_exec( $ch );
+            $error = curl_error($ch);
+
+            if($error){
+                throw new Exception($error);
+            }
+
             $data = json_decode( $data, !$this->UseObjectsInResults );
             curl_close( $ch );
             if ( $data === null ) {
