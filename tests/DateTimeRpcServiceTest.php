@@ -102,4 +102,16 @@
             }
         }
 
+
+        public function testMultipleBatchCalls() {
+            $requests = array();
+            for ( $i = 1; $i < 12; $i ++ ) {
+                $requests[] = array( 'jsonrpc' => '2.0', 'method' => 'GetRelativeTime', 'params' => array( 'now' ), 'id' => $i );
+            }
+
+            $response = $this->call( $requests );
+            $this->assertCount( 3, $response );
+            $this->assertArrayHasKey( 'code', $response['error'] );
+        }
+
     }

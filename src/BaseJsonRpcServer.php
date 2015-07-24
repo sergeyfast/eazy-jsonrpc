@@ -76,6 +76,12 @@
         public $IsXDR = true;
 
         /**
+         * Max Batch Calls
+         * @var int
+         */
+        public $MaxBatchCalls = 10;
+
+        /**
          * Error Messages
          * @var array
          */
@@ -122,6 +128,11 @@
 
                 // check for batch call
                 if ( is_array( $this->request ) ) {
+                    if( count( $this->request ) > $this->MaxBatchCalls ) {
+                        $error = self::InvalidRequest;
+                        break;
+                    }
+
                     $this->calls       = $this->request;
                     $this->isBatchCall = true;
                 } else {
