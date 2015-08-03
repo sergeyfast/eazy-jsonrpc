@@ -50,4 +50,22 @@
             return implode( $glue, $pieces );
         }
 
+        /**
+         * ComplexResult Function
+         * @result({
+         *      "id":{"type":"string" },
+         *      "firstName":{"type":"string"},
+         *      "lastName":{"type":"string"},
+         *      "age":{"type":"number","maximum":125,"minimum":0},
+         *      "address":{"type":"string"}
+         * })
+         *
+         * @return StdClass
+         */
+        public function ComplexResult() {
+            $result = new StdClass();
+            $result->id = 1;
+
+            return $result;
+        }
     }

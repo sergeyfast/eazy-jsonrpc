@@ -128,7 +128,7 @@
 
                 // check for batch call
                 if ( is_array( $this->request ) ) {
-                    if( count( $this->request ) > $this->MaxBatchCalls ) {
+                    if ( count( $this->request ) > $this->MaxBatchCalls ) {
                         $error = self::InvalidRequest;
                         break;
                     }
@@ -307,7 +307,7 @@
         public function __construct( $instance = null ) {
             if ( get_parent_class( $this ) ) {
                 $this->RegisterInstance( $this, '' );
-            } else if ( $instance ) {
+            } elseif ( $instance ) {
                 $this->RegisterInstance( $instance, '' );
             }
         }
@@ -417,8 +417,8 @@
                 'description' => '',
             );
 
-            foreach( $this->instances as $namespace => $instance ) {
-                $rc = new ReflectionClass( $instance);
+            foreach ( $this->instances as $namespace => $instance ) {
+                $rc = new ReflectionClass( $instance );
 
                 // Get Class Description
                 if ( $rcDocComment = $this->getDocDescription( $rc->getDocComment() ) ) {
@@ -469,10 +469,17 @@
                         $result['services'][$methodName]['parameters'][] = $param;
                     }
 
-                    // set return type
+                    // set simple return type
                     if ( preg_match( '/@return\s+([^\s]+)\s*([^\n\*]+)/', $docComment, $matches ) ) {
                         $returns                                    = array( 'type' => $matches[1], 'description' => trim( $matches[2] ) );
                         $result['services'][$methodName]['returns'] = array_filter( $returns );
+                    }
+
+                    // set complex return type
+                    if ( preg_match( '/@result\(([^\)]+)\)/', $docComment, $matches ) ) {
+                        $returns                                                   = str_replace( '*', '', $matches[1] );
+                        $result['services'][$methodName]['returns']['type']        = json_decode( $returns );
+                        $result['services'][$methodName]['returns']['description'] = '';
                     }
                 }
             }

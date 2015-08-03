@@ -42,6 +42,7 @@
             $namespace      = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
             $method         = $namespace ? $methodInfo[1] : $name;
             $requestRef     = $name . "Request";
+            $responseRef    = $name . "Response";
             $swaggerService = array(
                 'tags'        => array( $namespace ?: 'public' ),
                 'summary'     => $service->description,
@@ -63,7 +64,6 @@
                 $swaggerService['parameters'][0]['schema'] = array( 'type' => 'string' );
             }
 
-
             $swaggerRequired = array();
             $swaggerParams   = array();
             $items           = array();
@@ -77,11 +77,11 @@
                         $type = 'boolean';
                         break;
                     case 'int[]':
-                        $type = 'array';
+                        $type  = 'array';
                         $items = 'integer';
                         break;
                     case 'string[]':
-                        $type = 'array';
+                        $type  = 'array';
                         $items = 'string';
                         break;
                     default:
@@ -89,9 +89,9 @@
                 }
 
                 $swaggerParams[$parameter->name] = array(
-                    'type'        => $type,
-                    'json'        => array( 'name' => $parameter->name ),
-                    'default'     => !empty( $parameter->default ) ? $parameter->default : '',
+                    'type'    => $type,
+                    'json'    => array( 'name' => $parameter->name ),
+                    'default' => !empty( $parameter->default ) ? $parameter->default : '',
                 );
 
                 if ( $items ) {
@@ -103,7 +103,16 @@
                 }
             }
 
-            $pathKey = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
+            if ( !empty( $service->returns->type ) ) {
+                if ( is_object( $service->returns->type ) ) {
+                    $swaggerService['responses'][200]['schema']['$ref'] = $responseRef;
+                    $swagger['definitions'][$responseRef]['properties'] = $service->returns->type;
+                } else {
+                    $swaggerService['responses'][200]['schema']['type'] = $service->returns->type;
+                }
+            }
+
+            $pathKey                            = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
             $swagger['paths'][$pathKey]['post'] = $swaggerService;
 
             if ( $service->parameters ) {
