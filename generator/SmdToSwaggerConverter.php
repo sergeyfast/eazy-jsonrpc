@@ -30,6 +30,26 @@
         /**
          * @var array
          */
+        private $baseJsonRpcRequest = array(
+            'jsonrpc' => array(
+                'type'    => 'string',
+                'default' => '2.0',
+            ),
+            'method'  => array(
+                'type' => 'string',
+            ),
+            'params'  => array(
+                'type' => 'object',
+            ),
+            'id'      => array(
+                'type'    => 'integer',
+                'default' => 1,
+            ),
+        );
+
+        /**
+         * @var array
+         */
         private $baseJsonRpcResponse = array(
             'jsonrpc' => array(
                 'type'    => 'string',
@@ -53,7 +73,7 @@
                 'default' => '2.0',
             ),
             'error'   => array(
-                '$ref' => 'JsonRpcErrorInner', //TODO should be "#/definitions/JsonRpcErrorInner"
+                '$ref' => '#/definitions/JsonRpcErrorInner',
             ),
             'id'      => array(
                 'type'    => 'integer',
@@ -119,12 +139,15 @@
          * @param Object $service
          */
         private function generateService( $name, $service ) {
-            $methodInfo     = explode( '.', $name, 2 );
-            $namespace      = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
-            $method         = $namespace ? $methodInfo[1] : $name;
-            $pathKey        = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
-            $requestRef     = $name . "Request";
-            $responseRef    = $name . "Response";
+            $methodInfo      = explode( '.', $name, 2 );
+            $namespace       = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
+            $method          = $namespace ? $methodInfo[1] : $name;
+            $pathKey         = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
+            $requestRef      = $name . "Request";
+            $requestRefInner = $requestRef . "Inner";
+            $responseRef     = $name . "Response";
+
+            //main service params
             $swaggerService = array(
                 'tags'        => array( $namespace ?: 'public' ),
                 'summary'     => $service->description,
@@ -149,18 +172,22 @@
                 )
             );
 
-            if ( !$service->parameters ) {
-                $swaggerService['parameters'][0]['schema'] = array( 'type' => 'string' );
+            //building request
+            $request                      = $this->baseJsonRpcRequest;
+            $request['method']['default'] = $method;
+
+            if ( $service->parameters ) {
+                $request['params'] = array( '$ref' => '#/definitions/' . $requestRefInner );
+                foreach ( $service->parameters as $parameter ) {
+                    $this->parseParameter( $requestRefInner, $parameter, true );
+                }
             }
 
-            //building request
-            foreach ( $service->parameters as $parameter ) {
-                $this->parseParameter( $requestRef, $parameter );
-            }
+            $this->swagger['definitions'][$requestRef]['properties'] = $request;
 
             //building response
             $this->swagger['definitions'][$responseRef]['properties'] = $this->baseJsonRpcResponse;
-            $this->parseParameter( $responseRef, $service->returns, 'result' );
+            $this->parseParameter( $responseRef, $service->returns, false );
 
             //register service
             $this->swagger['paths'][$pathKey]['post'] = $swaggerService;
@@ -171,15 +198,12 @@
          * parse smd parameter to swagger
          * @param string $ref
          * @param Object $parameter
-         * @param string $name
+         * @param bool   $isRequest
          */
-        private function parseParameter( $ref, $parameter, $name = null ) {
+        private function parseParameter( $ref, $parameter, $isRequest ) {
             $type      = !empty( $parameter->type ) ? $parameter->type : 'string';
+            $name      = !empty( $parameter->name ) ? $parameter->name : '';
             $list_type = '';
-
-            if ( $name === null && !empty( $parameter->name ) ) {
-                $name = $parameter->name;
-            }
 
             if ( is_object( $type ) ) {
                 //TODO implement
@@ -213,6 +237,10 @@
                 $parameterParsed['items'] = array( 'type' => $list_type );
             }
 
-            $this->swagger['definitions'][$ref]['properties'][$name] = $parameterParsed;
+            if ( $isRequest ) {
+                $this->swagger['definitions'][$ref]['properties'][$name] = $parameterParsed;
+            } else {
+                $this->swagger['definitions'][$ref]['properties']['result'] = $parameterParsed;
+            }
         }
     }
