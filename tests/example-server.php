@@ -19,5 +19,5 @@
         $server = new BaseJsonRpcServer( new DateTimeService() );
     }
 
-    $server->ContentType = null;
+//    $server->ContentType = null;
     $server->Execute();

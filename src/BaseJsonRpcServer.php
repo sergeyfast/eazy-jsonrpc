@@ -495,5 +495,4 @@
             $this->response = $this->calls = array();
             $this->hasCalls = $this->isBatchCall = false;
         }
-
     }

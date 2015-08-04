@@ -23,7 +23,7 @@
          * @return array
          */
         public function GetTimeZones() {
-            return DateTimeZone::listAbbreviations();
+            return array_slice( DateTimeZone::listAbbreviations(), 0, 3 );
         }
 
 
@@ -42,13 +42,14 @@
 
         /**
          * Implode Function
-         * @param string $glue
-         * @param string[]  $pieces
+         * @param string   $glue
+         * @param string[] $pieces
          * @return string string
          */
         public function Implode( $glue, $pieces = array( '1', '2', '3' ) ) {
             return implode( $glue, $pieces );
         }
+
 
         /**
          * ComplexResult Function
@@ -63,8 +64,12 @@
          * @return StdClass
          */
         public function ComplexResult() {
-            $result = new StdClass();
-            $result->id = 1;
+            $result            = new StdClass();
+            $result->id        = 12;
+            $result->firstName = "John";
+            $result->lastName  = "Smith";
+            $result->age       = 24;
+            $result->address   = "Spb";
 
             return $result;
         }
