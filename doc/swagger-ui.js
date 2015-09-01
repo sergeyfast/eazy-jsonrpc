@@ -3662,7 +3662,7 @@ var Operation = module.exports = function (parent, scheme, operationId, httpMeth
   this.operations = {};
   this.parameters = args !== null ? (args.parameters || []) : {};
   this.parent = parent;
-  this.path = (path || errors.push('Operation ' + this.nickname + ' is missing path.'));
+  this.path = (path.substr(1).replace("/", ".") || errors.push('Operation ' + this.nickname + ' is missing path.'));
   this.responses = (args.responses || {});
   this.scheme = scheme || parent.scheme || 'http';
   this.schemes = args.schemes || parent.schemes;
@@ -4098,7 +4098,8 @@ Operation.prototype.urlify = function (args) {
   if (this.basePath !== '/') {
     url += this.basePath;
   }
-  return url + requestUrl + querystring;
+
+  return url;
 };
 
 Operation.prototype.getMissingParams = function (args) {
