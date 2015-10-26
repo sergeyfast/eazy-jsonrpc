@@ -21,37 +21,37 @@
 
         public function testGetTime() {
             $response = $this->object->date_GetTime();
-            $this->assertEmpty( $response->Error );
-            $this->assertNotEmpty( $response->Result );
+            static::assertEmpty( $response->Error );
+            static::assertNotEmpty( $response->Result );
             $response = $this->object->date_GetTime( 'UTC', 'd.m.Y' );
-            $this->assertAttributeEquals( date( 'd.m.Y' ), 'Result', $response );
+            static::assertAttributeEquals( date( 'd.m.Y' ), 'Result', $response );
         }
 
 
         public function testPing() {
             $response = $this->object->ping_Ping();
-            $this->assertEquals( 'pong', $response->Result );
+            static::assertEquals( 'pong', $response->Result );
         }
 
 
         public function testGetTimeZones() {
             $response = $this->object->date_GetTimeZones();
-            $this->assertEquals( getCachedTimeZones(), $response->Result );
+            static::assertEquals( getCachedTimeZones(), $response->Result );
         }
 
 
         public function testGetRelativeTimeError() {
             $response = $this->object->date_GetRelativeTime( '-0000-00-00', '1' );
-            $this->assertEmpty( $response->Result );
-            $this->assertNotEmpty( $response->Error );
-            $this->assertTrue( $response->HasError() );
+            static::assertEmpty( $response->Result );
+            static::assertNotEmpty( $response->Error );
+            static::assertTrue( $response->HasError() );
 
         }
 
 
         public function testBatchCalls() {
-            $this->assertTrue( $this->object->BeginBatch() );
-            $this->assertFalse( $this->object->BeginBatch() );
+            static::assertTrue( $this->object->BeginBatch() );
+            static::assertFalse( $this->object->BeginBatch() );
 
             $r1 = $this->object->date_GetRelativeTime( 'now' );
             $r2 = $this->object->date_GetRelativeTime( 'yesterday' );
@@ -59,14 +59,14 @@
             $r4 = $this->object->date_GetRelativeTime( 'yesterday' );
             $r5 = $this->object->ping_Ping( 'test' );
 
-            $this->assertEmpty( $r2->Result );
+            static::assertEmpty( $r2->Result );
 
-            $this->assertTrue( $this->object->CommitBatch() );
-            $this->assertFalse( $this->object->CommitBatch() );
+            static::assertTrue( $this->object->CommitBatch() );
+            static::assertFalse( $this->object->CommitBatch() );
 
-            $this->assertNotEmpty( $r2->Result );
-            $this->assertEmpty( $r3->Result );
-            $this->assertEquals( $r4->Result, $r2->Result );
-            $this->assertEquals( $r5->Result, 'test' );
+            static::assertNotEmpty( $r2->Result );
+            static::assertEmpty( $r3->Result );
+            static::assertEquals( $r4->Result, $r2->Result );
+            static::assertEquals( $r5->Result, 'test' );
         }
     }

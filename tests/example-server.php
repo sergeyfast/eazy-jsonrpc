@@ -1,8 +1,11 @@
 <?php
     include '../src/BaseJsonRpcServer.php';
+    include '../src/BaseJsonRpcServerSmd.php';
     include 'lib/DateTimeService.php';
     include 'lib/PingService.php';
     include 'lib/DateTimeRpcService.php';
+    include 'lib/NewsService.php';
+    include 'lib/Model.php';
 
     /** @var BaseJsonRpcServer $server */
     $server = null;
@@ -13,7 +16,8 @@
     } else if ( array_key_exists( 'v3', $_GET ) ) {
         $server = new BaseJsonRpcServer();
         $server->RegisterInstance( new DateTimeService(), 'date' )
-            ->RegisterInstance( new PingService(), 'ping' );
+            ->RegisterInstance( new PingService(), 'ping' )
+            ->RegisterInstance( new NewsService(), 'news' );
     } else {
         // Instance Mode
         $server = new BaseJsonRpcServer( new DateTimeService() );

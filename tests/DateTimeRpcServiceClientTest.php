@@ -18,7 +18,7 @@
 
         public function testGetTimeZones() {
             $response = $this->object->GetTimeZones();
-            $this->assertNotEquals( getCachedTimeZones(), $response->Result );
-            $this->assertInternalType( 'object', $response->Result );
+            static::assertCount( count(getCachedTimeZones()), $response->Result );
+            static::assertInternalType( 'array', $response->Result );
         }
     }

@@ -23,7 +23,7 @@
          * @return array
          */
         public function GetTimeZones() {
-            return array_slice( DateTimeZone::listAbbreviations(), 0, 3 );
+            return DateTimeZone::listIdentifiers(DateTimeZone::AMERICA);
         }
 
 

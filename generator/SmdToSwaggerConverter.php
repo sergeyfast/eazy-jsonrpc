@@ -13,8 +13,7 @@
         die( "Couldn't parse SMD file or URL! " . PHP_EOL );
     }
 
-    $generator = new SmdToSwaggerConverter();
-    $generator->generate( $smd, $output, $hostname );
+    $generator = ( new SmdToSwaggerConverter() )->Generate( $smd, $output, $hostname );
 
 
     /**
@@ -25,76 +24,44 @@
         /**
          * @var array
          */
-        private $swagger = array();
+        private $swagger = [ ];
 
         /**
          * @var array
          */
-        private $baseJsonRpcRequest = array(
-            'jsonrpc' => array(
-                'type'    => 'string',
-                'default' => '2.0',
-            ),
-            'method'  => array(
-                'type' => 'string',
-            ),
-            'params'  => array(
-                'type' => 'object',
-            ),
-            'id'      => array(
-                'type'    => 'integer',
-                'default' => 1,
-            ),
-        );
+        private static $baseJsonRpcRequest = [
+            'jsonrpc' => [ 'type' => 'string', 'default' => '2.0' ],
+            'method'  => [ 'type' => 'string' ],
+            'params'  => [ 'type' => 'object' ],
+            'id'      => [ 'type' => 'integer', 'default' => 1 ],
+        ];
 
         /**
          * @var array
          */
-        private $baseJsonRpcResponse = array(
-            'jsonrpc' => array(
-                'type'    => 'string',
-                'default' => '2.0',
-            ),
-            'result'  => array(
-                'type' => 'object',
-            ),
-            'id'      => array(
-                'type'    => 'integer',
-                'default' => 1,
-            ),
-        );
+        private static $baseJsonRpcResponse = [
+            'jsonrpc' => [ 'type' => 'string', 'default' => '2.0' ],
+            'result'  => [ 'type' => 'object' ],
+            'id'      => [ 'type' => 'integer', 'default' => 1 ],
+        ];
 
         /**
          * @var array
          */
-        private $baseJsonRpcError = array(
-            'jsonrpc' => array(
-                'type'    => 'string',
-                'default' => '2.0',
-            ),
-            'error'   => array(
-                '$ref' => '#/definitions/JsonRpcErrorInner',
-            ),
-            'id'      => array(
-                'type'    => 'integer',
-                'default' => 1,
-            ),
-        );
+        private static $baseJsonRpcError = [
+            'jsonrpc' => [ 'type' => 'string', 'default' => '2.0' ],
+            'error'   => [ '$ref' => '#/definitions/JsonRpcErrorInner' ],
+            'id'      => [ 'type' => 'integer', 'default' => 1 ],
+        ];
 
         /**
          * @var array
          */
-        private $baseJsonRpcErrorInner = array(
-            'code'    => array(
-                'type' => 'integer',
-            ),
-            'message' => array(
-                'type' => 'string',
-            ),
-            'data'    => array(
-                'type' => 'object',
-            ),
-        );
+        private static $baseJsonRpcErrorInner = [
+            'code'    => [ 'type' => 'integer' ],
+            'message' => [ 'type' => 'string' ],
+            'data'    => [ 'type' => 'object' ],
+        ];
 
 
         /***
@@ -104,27 +71,27 @@
          * @return int
          */
         public function Generate( $smd, $target, $hostname ) {
-            $this->swagger = array(
+            $this->swagger = [
                 'swagger'     => '2.0',
-                'info'        => array(
+                'info'        => [
                     'title'   => $smd->description,
-                    'version' => '1.0.0'
-                ),
+                    'version' => '1.0.0',
+                ],
                 'host'        => $hostname,
                 'basePath'    => $smd->target,
-                'schemes'     => array( 'http', 'https' ),
-                'consumes'    => array( $smd->contentType ),
-                'produces'    => array( $smd->contentType ),
-                'paths'       => array(),
-                'definitions' => array(
-                    'JsonRpcErrorInner' => array(
-                        'properties' => $this->baseJsonRpcErrorInner,
-                    ),
-                    'JsonRpcError'      => array(
-                        'properties' => $this->baseJsonRpcError,
-                    ),
-                ),
-            );
+                'schemes'     => [ 'http', 'https' ],
+                'consumes'    => [ $smd->contentType ],
+                'produces'    => [ $smd->contentType ],
+                'paths'       => [ ],
+                'definitions' => [
+                    'JsonRpcErrorInner' => [
+                        'properties' => self::$baseJsonRpcErrorInner,
+                    ],
+                    'JsonRpcError'      => [
+                        'properties' => self::$baseJsonRpcError,
+                    ],
+                ],
+            ];
 
             foreach ( $smd->services as $name => $service ) {
                 $this->generateService( $name, $service );
@@ -143,41 +110,41 @@
             $namespace       = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
             $method          = $namespace ? $methodInfo[1] : $name;
             $pathKey         = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
-            $requestRef      = $name . "Request";
-            $requestRefInner = $requestRef . "Inner";
-            $responseRef     = $name . "Response";
+            $requestRef      = $name . 'Request';
+            $requestRefInner = $requestRef . 'Inner';
+            $responseRef     = $name . 'Response';
 
             //main service params
-            $swaggerService = array(
-                'tags'        => array( $namespace ?: 'public' ),
+            $swaggerService = [
+                'tags'        => [ $namespace ?: 'public' ],
                 'summary'     => $service->description,
                 'description' => '',
-                'parameters'  => array(
-                    array(
+                'parameters'  => [
+                    [
                         'name'     => 'params',
                         'in'       => 'body',
                         'required' => false,
-                        'schema'   => array( '$ref' => '#/definitions/' . $requestRef, 'type' => 'string', )
-                    )
-                ),
-                'responses'   => array(
-                    200       => array(
+                        'schema'   => [ '$ref' => '#/definitions/' . $requestRef, 'type' => 'string', ],
+                    ],
+                ],
+                'responses'   => [
+                    200       => [
                         'description' => 'json-rpc 2.0 response',
-                        'schema'      => array( '$ref' => '#/definitions/' . $responseRef, )
-                    ),
-                    'default' => array(
+                        'schema'      => [ '$ref' => '#/definitions/' . $responseRef, ],
+                    ],
+                    'default' => [
                         'description' => 'json-rpc 2.0 error',
-                        'schema'      => array( '$ref' => '#/definitions/JsonRpcError', )
-                    )
-                )
-            );
+                        'schema'      => [ '$ref' => '#/definitions/JsonRpcError', ],
+                    ],
+                ],
+            ];
 
             //building request
-            $request                      = $this->baseJsonRpcRequest;
-            $request['method']['default'] = $method;
+            $request                      = self::$baseJsonRpcRequest;
+            $request['method']['default'] = ( $namespace ? $namespace . '.' : '' ) . $method;
 
             if ( $service->parameters ) {
-                $request['params'] = array( '$ref' => '#/definitions/' . $requestRefInner );
+                $request['params'] = [ '$ref' => '#/definitions/' . $requestRefInner ];
                 foreach ( $service->parameters as $parameter ) {
                     $this->parseParameter( $requestRefInner, $parameter, true );
                 }
@@ -186,7 +153,8 @@
             $this->swagger['definitions'][$requestRef]['properties'] = $request;
 
             //building response
-            $this->swagger['definitions'][$responseRef]['properties'] = $this->baseJsonRpcResponse;
+
+            $this->swagger['definitions'][$responseRef]['properties'] = self::$baseJsonRpcResponse;
             $this->parseParameter( $responseRef, $service->returns, false );
 
             //register service
@@ -205,12 +173,7 @@
             $name      = !empty( $parameter->name ) ? $parameter->name : '';
             $list_type = '';
 
-            if ( is_object( $type ) ) {
-                //TODO implement
-                return;
-            }
-
-            if ( substr( $type, strlen( $type ) - 2, 2 ) == '[]' ) {
+            if ( substr( $type, strlen( $type ) - 2, 2 ) === '[]' ) {
                 $list_type = substr( $type, 0, strlen( $type ) - 2 );
                 $type      = 'array';
             }
@@ -224,17 +187,17 @@
                     break;
             }
 
-            if ( $type == 'array' && !$list_type ) {
+            if ( $type === 'array' && !$list_type ) {
                 $list_type = 'string';
             }
 
-            $parameterParsed = array(
+            $parameterParsed = [
                 'type'    => $type,
                 'default' => !empty( $parameter->default ) ? $parameter->default : '',
-            );
+            ];
 
             if ( $list_type ) {
-                $parameterParsed['items'] = array( 'type' => $list_type );
+                $parameterParsed['items'] = [ 'type' => $list_type ];
             }
 
             if ( $isRequest ) {
