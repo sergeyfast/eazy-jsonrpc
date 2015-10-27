@@ -106,13 +106,14 @@
          * @param Object $service
          */
         private function generateService( $name, $service ) {
-            $methodInfo      = explode( '.', $name, 2 );
-            $namespace       = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
-            $method          = $namespace ? $methodInfo[1] : $name;
-            $pathKey         = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
-            $requestRef      = $name . 'Request';
-            $requestRefInner = $requestRef . 'Inner';
-            $responseRef     = $name . 'Response';
+            $methodInfo       = explode( '.', $name, 2 );
+            $namespace        = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
+            $method           = $namespace ? $methodInfo[1] : $name;
+            $pathKey          = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
+            $requestRef       = $name . 'Request';
+            $requestRefInner  = $requestRef . 'Inner';
+            $responseRef      = $name . 'Response';
+            $responseRefInner = $responseRef . 'Inner';
 
             //main service params
             $swaggerService = [
@@ -150,12 +151,26 @@
                 }
             }
 
+            //slush request
             $this->swagger['definitions'][$requestRef]['properties'] = $request;
 
-            //building response
-
+            //building base response
             $this->swagger['definitions'][$responseRef]['properties'] = self::$baseJsonRpcResponse;
-            $this->parseParameter( $responseRef, $service->returns, false );
+
+            //inject existing definitions
+            if ( !empty( $service->returns->definitions ) ) {
+                foreach ( $service->returns->definitions as $name => $d ) {
+                    $this->swagger['definitions'][$name] = $d;
+                }
+                unset( $service->returns->definitions );
+            }
+//
+//            if ( $service->returns->type === 'object' ) {
+//                $this->swagger['definitions'][$responseRefInner]['properties']      = $service->returns->properties;
+//                $this->swagger['definitions'][$responseRef]['properties']['result'] = [ '$ref' => '#/definitions/' . $responseRefInner ];
+//            } else {
+//                $this->swagger['definitions'][$responseRef]['properties']['result'] = $service->returns;
+//            }
 
             //register service
             $this->swagger['paths'][$pathKey]['post'] = $swaggerService;
@@ -192,8 +207,9 @@
             }
 
             $parameterParsed = [
-                'type'    => $type,
-                'default' => !empty( $parameter->default ) ? $parameter->default : '',
+                'type'     => $type,
+                'default'  => !empty( $parameter->default ) ? $parameter->default : '',
+//                'required' => empty( $parameter->optional ),
             ];
 
             if ( $list_type ) {
