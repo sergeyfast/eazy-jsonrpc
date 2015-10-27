@@ -164,13 +164,13 @@
                 }
                 unset( $service->returns->definitions );
             }
-//
-//            if ( $service->returns->type === 'object' ) {
-//                $this->swagger['definitions'][$responseRefInner]['properties']      = $service->returns->properties;
-//                $this->swagger['definitions'][$responseRef]['properties']['result'] = [ '$ref' => '#/definitions/' . $responseRefInner ];
-//            } else {
-//                $this->swagger['definitions'][$responseRef]['properties']['result'] = $service->returns;
-//            }
+
+            if ( $service->returns->type === 'object' ) {
+                $this->swagger['definitions'][$responseRefInner]['properties']      = $service->returns->properties;
+                $this->swagger['definitions'][$responseRef]['properties']['result'] = [ '$ref' => '#/definitions/' . $responseRefInner ];
+            } else {
+                $this->swagger['definitions'][$responseRef]['properties']['result'] = $service->returns;
+            }
 
             //register service
             $this->swagger['paths'][$pathKey]['post'] = $swaggerService;
@@ -206,11 +206,11 @@
                 $list_type = 'string';
             }
 
-            $parameterParsed = [
-                'type'     => $type,
-                'default'  => !empty( $parameter->default ) ? $parameter->default : '',
-//                'required' => empty( $parameter->optional ),
-            ];
+            $parameterParsed = array_filter( [
+                'type'    => $type,
+                'default' => !empty( $parameter->default ) ? $parameter->default : null,
+//                'required' => empty( $parameter->optional ), TODO
+            ] );
 
             if ( $list_type ) {
                 $parameterParsed['items'] = [ 'type' => $list_type ];

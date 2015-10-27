@@ -30,5 +30,5 @@ Client
 Doc
 ------
 * cd generator
-* `php SmdToSwaggerConverter.php 'http://eazyjsonrpc/tests/example-server.php?smd&v2' eazyjsonrpc ../doc/swagger.json`
+* `php SmdToSwaggerConverter.php 'http://eazyjsonrpc/tests/example-server.php?smd' eazyjsonrpc ../doc/swagger.json`
 * open http://eazyjsonrpc/doc/

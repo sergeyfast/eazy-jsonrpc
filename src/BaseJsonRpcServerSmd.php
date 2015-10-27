@@ -36,6 +36,20 @@
 
 
         /**
+         * Json schema type mapping
+         * @var array
+         */
+        protected static $typeMappings = [
+            'int'     => 'integer',
+            'bool'    => 'boolean',
+            'float'   => 'number',
+            'int[]'   => 'integer[]',
+            'bool[]'  => 'boolean[]',
+            'float[]' => 'number[]',
+        ];
+
+
+        /**
          * BaseJsonRpcServerSmd constructor.
          * @param array $instances
          * @param array $hiddenMethods
@@ -57,14 +71,14 @@
                 if ( $f['isRef'] ) {
                     $props[$name] = [
                         'type'  => $f['isArray'] ? 'array' : 'object',
-                        'allOf' => [
+                        'items' => [
                             [ '$ref' => '#/definitions/' . $f['type'] ],
                         ],
                     ];
                 } else {
                     $props[$name] = array_filter( [
-                        'type'  => $f['isArray'] ? 'array' : $f['type'],
-                        'items' => $f['isArray'] ? [ 'type' => $f['type'] ] : null,
+                        'type'  => $f['isArray'] ? 'array' : self::getJsonSchemaType( $f['type'] ),
+                        'items' => $f['isArray'] ? [ 'type' => self::getJsonSchemaType( $f['type'] ) ] : null,
                     ] );
                 }
             }
@@ -184,6 +198,21 @@
 
 
         /**
+         * Get Json Schema Type from PHP Type
+         * @param string $type
+         * @return string
+         */
+        protected static function getJsonSchemaType( $type ) {
+            // replace php type to json schema type
+            if ( !empty( self::$typeMappings[$type] ) ) {
+                return self::$typeMappings[$type];
+            }
+
+            return $type;
+        }
+
+
+        /**
          * @param string $type
          * @param        $description
          * @return array
@@ -192,9 +221,11 @@
             $sType   = rtrim( $type, '[]' );
             $isArray = $sType !== $type;
             if ( in_array( $sType, self::$simpleTypes, true ) ) {
+                $items = $type === 'array' ? [ 'type' => 'string' ] : null;
                 return array_filter( [
-                    'type'        => $type,
+                    'type'        => self::getJsonSchemaType( $type ),
                     'description' => $description,
+                    'items'       => $items,
                 ] );
             }
 
@@ -208,7 +239,7 @@
             ];
 
             if ( $isArray ) {
-                $r['allOf']                   = [ [ '$ref' => '#/definitions/' . $t['type'] ] ];
+                $r['items']                   = [ [ '$ref' => '#/definitions/' . $t['type'] ] ];
                 $r['definitions'][$t['type']] = [ 'properties' => self::getProps( $t ), ];
             }
 

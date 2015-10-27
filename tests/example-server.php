@@ -14,14 +14,13 @@
     if ( array_key_exists( 'v2', $_GET ) ) {
         $server = new DateTimeRpcService();
     } else if ( array_key_exists( 'v3', $_GET ) ) {
+        // Instance Mode
+        $server = new BaseJsonRpcServer( new DateTimeService() );
+    } else {
         $server = new BaseJsonRpcServer();
         $server->RegisterInstance( new DateTimeService(), 'date' )
             ->RegisterInstance( new PingService(), 'ping' )
             ->RegisterInstance( new NewsService(), 'news' );
-    } else {
-        // Instance Mode
-        $server = new BaseJsonRpcServer( new DateTimeService() );
     }
 
-//    $server->ContentType = null;
     $server->Execute();

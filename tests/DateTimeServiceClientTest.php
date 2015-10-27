@@ -11,7 +11,7 @@
          */
         protected $object;
 
-        protected $url = 'http://eazyjsonrpc/tests/example-server.php';
+        protected $url = 'http://eazyjsonrpc/tests/example-server.php?v3';
 
 
         public function setUp() {
