@@ -80,6 +80,13 @@
          */
         public $MaxBatchCalls = 10;
 
+
+        /**
+         * Allow SMD Generation via ?smd
+         * @var bool
+         */
+        public $AllowSMD = true;
+
         /**
          * Error Messages
          * @var array
@@ -150,7 +157,7 @@
          * @param null  $data
          * @return array
          */
-        private function getError( $code, $id = null, $data = null ) {
+        protected function getError( $code, $id = null, $data = null ) {
             return [
                 'jsonrpc' => '2.0',
                 'id'      => $id,
@@ -260,7 +267,7 @@
          * @param $call
          * @return array|null
          */
-        private function processCall( $call ) {
+        protected function processCall( $call ) {
             $id        = property_exists( $call, 'id' ) ? $call->id : null;
             $params    = property_exists( $call, 'params' ) ? $call->params : [ ];
             $result    = null;
@@ -312,7 +319,7 @@
 
         /**
          * Register Instance
-         * @param mixed $instance
+         * @param mixed  $instance
          * @param string $namespace default is empty string
          * @return $this
          */
@@ -329,7 +336,7 @@
         public function Execute() {
             do {
                 // check for SMD Discovery request
-                if ( array_key_exists( 'smd', $_GET ) && class_exists( '\EazyJsonRpc\BaseJsonRpcServerSmd' ) ) {
+                if ( $this->AllowSMD && array_key_exists( 'smd', $_GET ) && class_exists( '\EazyJsonRpc\BaseJsonRpcServerSmd' ) ) {
                     $this->response[] = ( new BaseJsonRpcServerSmd( $this->instances, $this->hiddenMethods ) )->GetServiceMap();
                     $this->hasCalls   = true;
                     break;
