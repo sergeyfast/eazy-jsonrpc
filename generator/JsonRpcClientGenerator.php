@@ -61,7 +61,7 @@
      * @author JsonRpcClientGenerator
      * @date {$date}
      */
-    class {$this->className} extends BaseJsonRpcClient {
+    class {$this->className} extends \EazyJsonRpc\BaseJsonRpcClient {
 php;
 
             return $result;
@@ -77,18 +77,18 @@ php;
             $newDocLine    = PHP_EOL . str_repeat( ' ', 9 ) . '*';
             $description   = !empty( $methodData['description'] ) ? $methodData['description'] : $methodName;
             $strDocParams  = '';
-            $strParamsArr  = array();
-            $callParamsArr = array();
+            $strParamsArr  = [ ];
+            $callParamsArr = [ ];
             $methodName    = str_replace( '.', '_', $methodName );
 
             // Add Default Parameter = IsNotification
-            $methodData['parameters'][] = array(
+            $methodData['parameters'][] = [
                 'name'        => 'isNotification',
                 'optional'    => 'true',
                 'type'        => 'bool',
                 'default'     => false,
                 'description' => 'set to true if call is notification',
-            );
+            ];
 
             // params
             if ( !empty( $methodData['parameters'] ) ) {
@@ -96,7 +96,7 @@ php;
                 foreach ( $methodData['parameters'] as $param ) {
                     $name              = $param['name'];
                     $strParam          = '$' . $name;
-                    $strDocParamsArr   = array( $newDocLine );
+                    $strDocParamsArr   = [ $newDocLine ];
                     $strDocParamsArr[] = '@param';
 
                     if ( !empty( $param['type'] ) ) {
@@ -124,8 +124,8 @@ php;
 
             $strParams = ' ' . trim(
                     str_replace(
-                        array( "\n", ',)', 'array (' ),
-                        array( '', ')', 'array(' ),
+                        [ "\n", ',)', 'array (' ],
+                        [ '', ')', 'array(' ],
                         implode( ', ', $strParamsArr )
                     ), ', ' ) . ' ';
 
@@ -133,15 +133,13 @@ php;
 
             // returns
             if ( !empty( $methodData['returns'] ) && !empty( $methodData['returns']['type'] ) && is_string( $methodData['returns']['type'] ) ) {
-                $strDocParams .= $newDocLine . ' @return BaseJsonRpcCall (result: ' . $methodData['returns']['type'] . ')';
+                $strDocParams .= $newDocLine . ' @return \EazyJsonRpc\BaseJsonRpcCall (result: ' . $methodData['returns']['type'] . ')';
             }
 
             $callParamsStr = implode( ', ', $callParamsArr );
             if ( !empty( $callParamsStr ) ) {
                 $callParamsStr = sprintf( ' %s ', $callParamsStr );
             }
-
-
 
 
             $result = <<<php

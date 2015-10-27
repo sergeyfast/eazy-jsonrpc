@@ -46,7 +46,7 @@
          * @param string[] $pieces
          * @return string string
          */
-        public function Implode( $glue, $pieces = [ "1", "2", "3" ] ) {
+        public function Implode( $glue, $pieces = [ '1', '2', '3' ] ) {
             return implode( $glue, $pieces );
         }
     }

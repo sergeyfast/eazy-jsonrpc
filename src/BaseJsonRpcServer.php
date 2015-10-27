@@ -1,5 +1,6 @@
 <?php
 
+    namespace EazyJsonRpc;
 
     /**
      * JSON RPC Server for Eaze
@@ -21,13 +22,13 @@
 
         /**
          * Exposed Instances
-         * @var object[]    namespace => method
+         * @var mixed    namespace => method
          */
         protected $instances = [ ];
 
         /**
          * Decoded Json Request
-         * @var object|array
+         * @var mixed|array
          */
         protected $request;
 
@@ -94,7 +95,7 @@
 
         /**
          * Cached Reflection Methods
-         * @var ReflectionMethod[]
+         * @var \ReflectionMethod[]
          */
         private $reflectionMethods = [ ];
 
@@ -107,7 +108,7 @@
             $error = null;
 
             do {
-                if ( array_key_exists( 'REQUEST_METHOD', $_SERVER ) && $_SERVER['REQUEST_METHOD'] != 'POST' ) {
+                if ( array_key_exists( 'REQUEST_METHOD', $_SERVER ) && $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
                     $error = self::InvalidRequest;
                     break;
                 };
@@ -164,7 +165,7 @@
 
         /**
          * Check for jsonrpc version and correct method
-         * @param object $call
+         * @param mixed $call
          * @return array|null
          */
         private function validateCall( $call ) {
@@ -179,10 +180,8 @@
                 }
 
                 // hack for inputEx smd tester
-                if ( property_exists( $call, 'version' ) ) {
-                    if ( $call->version === 'json-rpc-2.0' ) {
-                        $call->jsonrpc = '2.0';
-                    }
+                if ( property_exists( $call, 'version' ) && $call->version === 'json-rpc-2.0' ) {
+                    $call->jsonrpc = '2.0';
                 }
 
                 if ( !property_exists( $call, 'jsonrpc' ) || $call->jsonrpc !== '2.0' ) {
@@ -200,7 +199,7 @@
                 }
 
                 if ( !array_key_exists( $fullMethod, $this->reflectionMethods ) ) {
-                    $this->reflectionMethods[$fullMethod] = new ReflectionMethod( $this->instances[$namespace], $method );
+                    $this->reflectionMethods[$fullMethod] = new \ReflectionMethod( $this->instances[$namespace], $method );
                 }
 
                 /** @var $params array */
@@ -282,7 +281,7 @@
 
                 // invoke
                 $result = $this->reflectionMethods[$call->method]->invokeArgs( $this->instances[$namespace], $params );
-            } catch ( Exception $e ) {
+            } catch ( \Exception $e ) {
                 return $this->getError( $e->getCode(), $id, $e->getMessage() );
             }
 
@@ -313,7 +312,7 @@
 
         /**
          * Register Instance
-         * @param object $instance
+         * @param mixed $instance
          * @param string $namespace default is empty string
          * @return $this
          */
@@ -330,7 +329,7 @@
         public function Execute() {
             do {
                 // check for SMD Discovery request
-                if ( array_key_exists( 'smd', $_GET ) && class_exists( 'BaseJsonRpcServerSmd' ) ) {
+                if ( array_key_exists( 'smd', $_GET ) && class_exists( '\EazyJsonRpc\BaseJsonRpcServerSmd' ) ) {
                     $this->response[] = ( new BaseJsonRpcServerSmd( $this->instances, $this->hiddenMethods ) )->GetServiceMap();
                     $this->hasCalls   = true;
                     break;

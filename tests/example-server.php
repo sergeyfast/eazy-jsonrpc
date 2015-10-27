@@ -1,4 +1,6 @@
 <?php
+    use EazyJsonRpc\BaseJsonRpcServer;
+
     include '../src/BaseJsonRpcServer.php';
     include '../src/BaseJsonRpcServerSmd.php';
     include 'lib/DateTimeService.php';

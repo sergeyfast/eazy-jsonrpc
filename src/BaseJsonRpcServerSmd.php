@@ -1,5 +1,6 @@
 <?php
 
+    namespace EazyJsonRpc;
 
     /**
      * JSON RPC SMD Generator for JSON-RPC
@@ -134,7 +135,7 @@
             ];
 
             foreach ( $this->instances as $namespace => $instance ) {
-                $rc = new ReflectionClass( $instance );
+                $rc = new \ReflectionClass( $instance );
 
                 // Get Class Description
                 if ( $rcDocComment = self::getDocDescription( $rc->getDocComment() ) ) {
@@ -142,7 +143,7 @@
                 }
 
                 foreach ( $rc->getMethods() as $method ) {
-                    /** @var ReflectionMethod $method */
+                    /** @var \ReflectionMethod $method */
                     if ( !$method->isPublic() || in_array( strtolower( $method->getName() ), $this->hiddenMethods, true ) ) {
                         continue;
                     }
@@ -265,7 +266,7 @@
                 return;
             }
 
-            $rc = new ReflectionClass( $type );
+            $rc = new \ReflectionClass( $type );
             $t  = [
                 'description' => self::getDocDescription( $rc->getDocComment() ),
                 'fields'      => [ ],
@@ -273,7 +274,7 @@
             ];
 
             $delayed = [ ];
-            foreach ( $rc->getProperties( ReflectionProperty::IS_PUBLIC ) as $r ) {
+            foreach ( $rc->getProperties( \ReflectionProperty::IS_PUBLIC ) as $r ) {
                 list( $pt, $c ) = self::getDocVar( $r->getDocComment(), 'var' );
                 $spt  = rtrim( $pt, '[]' );
                 $info = [ 'type' => $spt, 'description' => $c, 'isRef' => false, 'isArray' => $spt !== $pt ];
