@@ -142,7 +142,12 @@
                     $result['description'] .= $rcDocComment . PHP_EOL;
                 }
 
-                foreach ( $rc->getMethods() as $method ) {
+                $methods = $rc->getMethods();
+                foreach( $rc->getTraits() as $t ) {
+                    $methods = array_merge( $t->getMethods(), $methods );
+                }
+
+                foreach ( $methods as $method ) {
                     /** @var \ReflectionMethod $method */
                     if ( !$method->isPublic() || in_array( strtolower( $method->getName() ), $this->hiddenMethods, true ) ) {
                         continue;
