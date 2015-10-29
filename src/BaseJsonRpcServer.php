@@ -75,6 +75,12 @@
         public $IsXDR = true;
 
         /**
+         * Allowed Cross-Domain Headers
+         * @var string[]
+         */
+        protected $allowedHeaders = [ 'x-requested-with', 'content-type' ];
+
+        /**
          * Max Batch Calls
          * @var int
          */
@@ -379,7 +385,7 @@
                     // Allow Cross Domain Requests
                     if ( $this->IsXDR ) {
                         header( 'Access-Control-Allow-Origin: *' );
-                        header( 'Access-Control-Allow-Headers: x-requested-with, content-type' );
+                        header( 'Access-Control-Allow-Headers: ' . implode( ', ', $this->allowedHeaders ) );
                     }
                 }
 
