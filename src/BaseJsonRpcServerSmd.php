@@ -239,7 +239,7 @@
                 return array_filter( [
                     'type'        => self::getJsonSchemaType( $type ),
                     'description' => $description,
-                    'items'       => $items,
+                    'items'       => $isArray ? $items : null,
                 ] );
             }
 
