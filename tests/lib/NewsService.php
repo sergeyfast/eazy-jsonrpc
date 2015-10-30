@@ -46,4 +46,13 @@
         public function GetTags() {
             return [ new Tag( 1, 't1' ), new Tag( 2, 't2' ), new Tag( 3, 't3' ) ];
         }
+
+
+        /**
+         * Get Categories
+         * @return string[]
+         */
+        public function Categories() {
+            return [ 1 => 'test', 2 => 'test2' ];
+        }
     }

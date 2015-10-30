@@ -71,11 +71,15 @@
             foreach ( $t['fields'] as $name => $f ) {
                 if ( $f['isRef'] ) {
                     $props[$name] = [
-                        'type'  => $f['isArray'] ? 'array' : 'object',
-                        'items' => [
-                            [ '$ref' => '#/definitions/' . $f['type'] ],
-                        ],
+                        'type' => $f['isArray'] ? 'array' : 'object',
                     ];
+
+                    if ( $f['isArray'] ) {
+                        $props[$name]['items'] = [ '$ref' => '#/definitions/' . $f['type'] ];
+                    } else {
+                        $props[$name]['$ref'] = '#/definitions/' . $f['type'];
+                    }
+
                 } else {
                     $props[$name] = array_filter( [
                         'type'  => $f['isArray'] ? 'array' : self::getJsonSchemaType( $f['type'] ),
@@ -143,7 +147,7 @@
                 }
 
                 $methods = $rc->getMethods();
-                foreach( $rc->getTraits() as $t ) {
+                foreach ( $rc->getTraits() as $t ) {
                     $methods = array_merge( $t->getMethods(), $methods );
                 }
 
@@ -227,7 +231,11 @@
             $sType   = rtrim( $type, '[]' );
             $isArray = $sType !== $type;
             if ( in_array( $sType, self::$simpleTypes, true ) ) {
-                $items = $type === 'array' ? [ 'type' => 'string' ] : null;
+                $items = $type === 'array' ? [ 'type' => 'string' ] : [ 'type' => $sType ];
+                if ( $isArray ) {
+                    $type = 'array';
+                }
+
                 return array_filter( [
                     'type'        => self::getJsonSchemaType( $type ),
                     'description' => $description,
@@ -245,7 +253,7 @@
             ];
 
             if ( $isArray ) {
-                $r['items']                   = [ [ '$ref' => '#/definitions/' . $t['type'] ] ];
+                $r['items']                   = [ '$ref' => '#/definitions/' . $t['type'] ];
                 $r['definitions'][$t['type']] = [ 'properties' => self::getProps( $t ), ];
             }
 
