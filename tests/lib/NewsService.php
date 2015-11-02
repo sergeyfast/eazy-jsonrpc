@@ -55,4 +55,29 @@
         public function Categories() {
             return [ 1 => 'test', 2 => 'test2' ];
         }
+
+
+        /**
+         * Search News
+         * @param NewsSearch $s
+         * @param int        $page
+         * @param int        $count
+         * @return News[]
+         */
+        public function Search( $s, $page, $count = 50 ) {
+            return array_slice( self::GetList(), $page, $count );
+        }
+
+
+        /**
+         * Name Value
+         * @param NameValue[] $nv
+         * @param int         $c
+         * @return string[]
+         */
+        public function NameValue( $nv, $c = null ) {
+            return array_map( function ( $x ) {
+                return $x->name;
+            }, $nv );
+        }
     }

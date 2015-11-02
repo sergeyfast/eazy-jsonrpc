@@ -175,7 +175,7 @@
                             $desc = $matches[3][$number];
                             $name = trim( $name, '$' );
 
-                            $param               = [ 'type' => $type, 'description' => $desc ];
+                            $param               = self::getServiceMapReturnType( $type, $desc );
                             $parsedParams[$name] = array_filter( $param );
                         }
                     };
@@ -188,7 +188,7 @@
                             $param += $parsedParams[$name];
                         }
 
-                        if ( $param['optional'] ) {
+                        if ( $param['optional'] && $parameter->getDefaultValue() !== null ) {
                             $param['default'] = $parameter->getDefaultValue();
                         }
 
@@ -229,7 +229,7 @@
          */
         protected static function getServiceMapReturnType( $type, $description ) {
             $sType   = rtrim( $type, '[]' );
-            $isArray = $sType !== $type;
+            $isArray = $sType !== $type || $type === 'array';
             if ( in_array( $sType, self::$simpleTypes, true ) ) {
                 $items = $type === 'array' ? [ 'type' => 'string' ] : [ 'type' => $sType ];
                 if ( $isArray ) {

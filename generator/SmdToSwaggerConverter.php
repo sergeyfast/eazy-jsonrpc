@@ -108,14 +108,12 @@
          * @param Object $service
          */
         private function generateService( $name, $service ) {
-            $methodInfo       = explode( '.', $name, 2 );
-            $namespace        = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
-            $method           = $namespace ? $methodInfo[1] : $name;
-            $pathKey          = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
-            $requestRef       = $name . 'Request';
-            $requestRefInner  = $requestRef . 'Inner';
-            $responseRef      = $name . 'Response';
-            $responseRefInner = $responseRef . 'Inner';
+            $methodInfo  = explode( '.', $name, 2 );
+            $namespace   = count( $methodInfo ) == 2 ? $methodInfo[0] : '';
+            $method      = $namespace ? $methodInfo[1] : $name;
+            $pathKey     = '/' . ( $namespace ? $namespace . '/' : '' ) . $method;
+            $requestRef  = $name . '_Request';
+            $responseRef = $name . '_Response';
 
             //main service params
             $swaggerService = [
@@ -146,14 +144,7 @@
             $request                      = self::$baseJsonRpcRequest;
             $request['method']['default'] = ( $namespace ? $namespace . '.' : '' ) . $method;
 
-            if ( $service->parameters ) {
-                $request['params'] = [ '$ref' => '#/definitions/' . $requestRefInner ];
-                foreach ( $service->parameters as $parameter ) {
-                    $this->parseParameter( $requestRefInner, $parameter );
-                }
-            }
-
-            //flush request
+            //building base request
             $this->swagger['definitions'][$requestRef]['properties'] = $request;
             $this->swagger['definitions'][$requestRef]['required']   = [ 'jsonrpc', 'method', 'id' ];
 
@@ -161,20 +152,15 @@
             $this->swagger['definitions'][$responseRef]['properties'] = self::$baseJsonRpcResponse;
             $this->swagger['definitions'][$responseRef]['required']   = [ 'jsonrpc', 'result', 'id' ];
 
-            //inject existing definitions
-            if ( !empty( $service->returns->definitions ) ) {
-                foreach ( $service->returns->definitions as $name => $d ) {
-                    $this->swagger['definitions'][$name] = $d;
+            //inject request
+            if ( $service->parameters ) {
+                foreach ( $service->parameters as $k => $parameter ) {
+                    $this->injectRequest( $parameter, $requestRef );
                 }
-                unset( $service->returns->definitions );
             }
 
-            if ( $service->returns->type === 'object' ) {
-                $this->swagger['definitions'][$responseRefInner]['properties']      = $service->returns->properties;
-                $this->swagger['definitions'][$responseRef]['properties']['result'] = [ '$ref' => '#/definitions/' . $responseRefInner ];
-            } else {
-                $this->swagger['definitions'][$responseRef]['properties']['result'] = $service->returns;
-            }
+            //inject response
+            $this->injectResponse( $service->returns, $responseRef );
 
             //register service
             $this->swagger['paths'][$pathKey]['post'] = $swaggerService;
@@ -197,15 +183,6 @@
                 $type      = 'array';
             }
 
-            switch ( $type ) {
-                case 'int':
-                    $type = 'integer';
-                    break;
-                case 'bool':
-                    $type = 'boolean';
-                    break;
-            }
-
             if ( $type === 'array' && !$list_type ) {
                 $list_type = 'string';
             }
@@ -219,13 +196,78 @@
                 $parameterParsed['items'] = [ 'type' => $list_type ];
             }
 
-            if ( $parameter->optional ) {
+            if ( !$parameter->optional ) {
                 $required[] = $name;
             }
 
             $this->swagger['definitions'][$ref]['properties'][$name] = $parameterParsed;
             if ( $required ) {
                 $this->swagger['definitions'][$ref]['required'] = $required;
+            }
+        }
+
+
+        /**
+         * Inject Param to this.swagger.definitions[response|responseRef]
+         * @param $parameter
+         * @param $ref
+         */
+        private function injectRequest( $parameter, $ref ) {
+            $refBody  = $ref . 'Body';
+            $required = null;
+
+            if ( !empty( $parameter->definitions ) ) {
+                foreach ( $parameter->definitions as $name => $d ) {
+                    $this->swagger['definitions'][$name] = $d;
+                }
+                unset( $parameter->definitions );
+            }
+
+            $name = $parameter->name;
+            if ( !$parameter->optional ) {
+                $required = $name;
+            }
+
+            unset( $parameter->name, $parameter->optional );
+
+            if ( $parameter->type === 'object' ) {
+                $refObject = $refBody . '_' . $name;
+
+                $this->swagger['definitions'][$refBody]['properties'][$name] = [ '$ref' => '#/definitions/' . $refObject ];
+                $this->swagger['definitions'][$refObject]                    = $parameter;
+            } else {
+                $this->swagger['definitions'][$ref]['properties']['params']  = [ '$ref' => '#/definitions/' . $refBody ];
+                $this->swagger['definitions'][$refBody]['properties'][$name] = $parameter;
+            }
+
+            if ( $required ) {
+                $this->swagger['definitions'][$refBody]['required'][] = $required;
+                if ( !in_array( 'params', $this->swagger['definitions'][$ref]['required'], true ) ) {
+                    $this->swagger['definitions'][$ref]['required'][] = 'params';
+                }
+            }
+        }
+
+
+        /**
+         * Inject Param to this.swagger.definitions[response|responseRef]
+         * @param $parameter
+         * @param $ref
+         */
+        private function injectResponse( $parameter, $ref ) {
+            $refBody = $ref . 'Body';
+            if ( !empty( $parameter->definitions ) ) {
+                foreach ( $parameter->definitions as $name => $d ) {
+                    $this->swagger['definitions'][$name] = $d;
+                }
+                unset( $parameter->definitions );
+            }
+
+            if ( $parameter->type === 'object' ) {
+                $this->swagger['definitions'][$refBody]['properties']       = $parameter->properties;
+                $this->swagger['definitions'][$ref]['properties']['result'] = [ '$ref' => '#/definitions/' . $refBody ];
+            } else {
+                $this->swagger['definitions'][$ref]['properties']['result'] = $parameter;
             }
         }
     }

@@ -125,3 +125,55 @@
             $this->title = $title;
         }
     }
+
+
+    /**
+     * NewsSearch
+     */
+    class NewsSearch {
+
+        /**
+         * @var int
+         */
+        public $id;
+
+
+        /**
+         * @var int[]
+         */
+        public $tagIds;
+
+
+        /**
+         * @var bool
+         */
+        public $isPublished;
+
+        /**
+         * @var Tag[]
+         */
+        public $tags;
+
+        /**
+         * @var Category
+         */
+        public $category;
+    }
+
+
+    /**
+     * NameValue Parameter
+     */
+    class NameValue {
+
+        /**
+         * @var string
+         */
+        public $name;
+
+        /**
+         * @var string
+         */
+        public $value;
+
+    }
