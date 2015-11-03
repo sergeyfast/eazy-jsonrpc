@@ -71,7 +71,8 @@
             foreach ( $t['fields'] as $name => $f ) {
                 if ( $f['isRef'] ) {
                     $props[$name] = [
-                        'type' => $f['isArray'] ? 'array' : 'object',
+                        'type'        => $f['isArray'] ? 'array' : 'object',
+                        'description' => $f['description'],
                     ];
 
                     if ( $f['isArray'] ) {
@@ -82,8 +83,9 @@
 
                 } else {
                     $props[$name] = array_filter( [
-                        'type'  => $f['isArray'] ? 'array' : self::getJsonSchemaType( $f['type'] ),
-                        'items' => $f['isArray'] ? [ 'type' => self::getJsonSchemaType( $f['type'] ) ] : null,
+                        'type'        => $f['isArray'] ? 'array' : self::getJsonSchemaType( $f['type'] ),
+                        'items'       => $f['isArray'] ? [ 'type' => self::getJsonSchemaType( $f['type'] ) ] : null,
+                        'description' => $f['description'],
                     ] );
                 }
             }
@@ -290,7 +292,13 @@
             foreach ( $rc->getProperties( \ReflectionProperty::IS_PUBLIC ) as $r ) {
                 list( $pt, $c ) = self::getDocVar( $r->getDocComment(), 'var' );
                 $spt  = rtrim( $pt, '[]' );
-                $info = [ 'type' => $spt, 'description' => $c, 'isRef' => false, 'isArray' => $spt !== $pt ];
+                $info = [
+                    'type'        => $spt,
+                    'description' => self::getDocDescription( $r->getDocComment() ) ?: $c,
+                    'isRef'       => false,
+                    'isArray'     => $spt !== $pt,
+                ];
+
                 if ( !in_array( $spt, self::$simpleTypes, true ) ) {
                     $delayed[]     = $spt;
                     $info['isRef'] = true;

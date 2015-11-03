@@ -145,9 +145,10 @@
 
 
         /**
+         * True if news is visible to others
          * @var bool
          */
-        public $isPublished;
+        public $isPublished = true;
 
         /**
          * @var Tag[]
@@ -167,11 +168,13 @@
     class NameValue {
 
         /**
+         * Name
          * @var string
          */
         public $name;
 
         /**
+         * Value
          * @var string
          */
         public $value;
