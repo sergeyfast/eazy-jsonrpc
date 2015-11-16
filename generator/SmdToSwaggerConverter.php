@@ -230,13 +230,13 @@
 
             unset( $parameter->name, $parameter->optional );
 
+            $this->swagger['definitions'][$ref]['properties']['params']  = [ '$ref' => '#/definitions/' . $refBody ];
             if ( $parameter->type === 'object' ) {
                 $refObject = $refBody . '_' . $name;
 
                 $this->swagger['definitions'][$refBody]['properties'][$name] = [ '$ref' => '#/definitions/' . $refObject ];
                 $this->swagger['definitions'][$refObject]                    = $parameter;
             } else {
-                $this->swagger['definitions'][$ref]['properties']['params']  = [ '$ref' => '#/definitions/' . $refBody ];
                 $this->swagger['definitions'][$refBody]['properties'][$name] = $parameter;
             }
 
