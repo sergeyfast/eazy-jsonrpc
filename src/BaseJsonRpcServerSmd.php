@@ -182,6 +182,11 @@
                         }
                     };
 
+                    // check auth scope
+                    if ( preg_match_all( '/@scope\s+([^\s]*)/', $docComment, $matches ) ) {
+                        $result['services'][$methodName]['scope'] = current( $matches[1] );
+                    }
+
                     // process params
                     foreach ( $method->getParameters() as $parameter ) {
                         $name  = $parameter->getName();
@@ -201,6 +206,13 @@
                     list( $t, $c ) = self::getDocVar( $docComment );
                     if ( $t ) {
                         $result['services'][$methodName]['returns'] = self::getServiceMapReturnType( $t, $c );
+                    }
+
+                    // set simple error codes
+                    if ( preg_match_all( '/@code\s+(\d+)\s+(.*)/', $docComment, $matches ) ) {
+                        foreach ( $matches[1] as $i => $code ) {
+                            $result['services'][$methodName]['errors'][$code] = $matches[2][$i];
+                        }
                     }
                 }
             }

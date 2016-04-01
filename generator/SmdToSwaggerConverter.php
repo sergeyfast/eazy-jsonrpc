@@ -19,7 +19,7 @@
     //        }
     //      }
     //
-    // Also we supporting @scope <name> & @error <code> <message> tags from PHP annotation.
+    // Also we supporting @scope <name> & @code <code> <message> tags from PHP annotation.
     // Scope adds 401 Unauthorized error.
 
     
