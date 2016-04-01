@@ -1,5 +1,28 @@
 <?php
-    /// SMD to Swagger Converter
+    // SMD to Swagger Converter
+    // ======
+
+    // You can overwrite swagger data by creating config_<hostname>.json
+    //
+    // Example given:
+    //      {
+    //      "securityDefinitions": {
+    //          "auth": {
+    //            "type": "oauth2",
+    //            "flow": "accessCode",
+    //            "authorizationUrl": "http://myshows.devel/oauth/authorize",
+    //            "tokenUrl": "http://myshows.devel/oauth/token",
+    //            "scopes": {
+    //                  "basic": "All private profile methods"
+    //            }
+    //          }
+    //        }
+    //      }
+    //
+    // Also we supporting @scope <name> & @error <code> <message> tags from PHP annotation.
+    // Scope adds 401 Unauthorized error.
+
+    
     if ( empty( $argv[1] ) || empty( $argv[3] ) ) {
         printf( 'Usage: %s <smd-file|url> <hostname> <swagger.json>' . PHP_EOL, $argv[0] );
         die();
@@ -95,11 +118,18 @@
                 ],
             ];
 
+            $configFileName = __DIR__ . '/config_' . $hostname . '.json';
+            if ( file_exists( $configFileName ) ) {
+                $config        = file_get_contents( $configFileName );
+                $config        = json_decode( $config, true );
+                $this->swagger = array_merge( $this->swagger, $config );
+            }
+
             foreach ( $smd->services as $name => $service ) {
                 $this->generateService( $name, $service );
             }
 
-            return file_put_contents( $target, json_encode( $this->swagger ) );
+            return file_put_contents( $target, json_encode( $this->swagger, JSON_PRETTY_PRINT ) );
         }
 
 
@@ -140,6 +170,12 @@
                 ],
             ];
 
+            //auth scope
+            if ( !empty ( $service->scope ) ) {
+                $swaggerService['security']                      = [ [ 'auth' => explode( ',', $service->scope ) ] ];
+                $swaggerService['responses'][401]['description'] = 'Unauthorized';
+            }
+
             //building request
             $request                      = self::$baseJsonRpcRequest;
             $request['method']['default'] = ( $namespace ? $namespace . '.' : '' ) . $method;
@@ -151,6 +187,13 @@
             //building base response
             $this->swagger['definitions'][$responseRef]['properties'] = self::$baseJsonRpcResponse;
             $this->swagger['definitions'][$responseRef]['required']   = [ 'jsonrpc', 'result', 'id' ];
+
+            //building service errors
+            if ( !empty( $service->errors ) ) {
+                foreach ( $service->errors as $code => $message ) {
+                    $swaggerService['responses'][$code]['description'] = $message;
+                }
+            }
 
             //inject request
             if ( $service->parameters ) {
