@@ -1,6 +1,6 @@
 <?php
     /// SMD to Swagger Converter
-    if ( empty( $argv[1] ) || empty( $argv[2] ) || empty( $argv[3] ) ) {
+    if ( empty( $argv[1] ) || empty( $argv[3] ) ) {
         printf( 'Usage: %s <smd-file|url> <hostname> <swagger.json>' . PHP_EOL, $argv[0] );
         die();
     }
@@ -77,7 +77,7 @@
                     'title'   => $smd->description,
                     'version' => '1.0.0',
                 ],
-                'host'        => $hostname,
+                'host'        => $hostname ?: '',
                 'basePath'    => $smd->target,
                 'schemes'     => [ 'http', 'https' ],
                 'consumes'    => [ $smd->contentType ],
@@ -230,7 +230,7 @@
 
             unset( $parameter->name, $parameter->optional );
 
-            $this->swagger['definitions'][$ref]['properties']['params']  = [ '$ref' => '#/definitions/' . $refBody ];
+            $this->swagger['definitions'][$ref]['properties']['params'] = [ '$ref' => '#/definitions/' . $refBody ];
             if ( $parameter->type === 'object' ) {
                 $refObject = $refBody . '_' . $name;
 
