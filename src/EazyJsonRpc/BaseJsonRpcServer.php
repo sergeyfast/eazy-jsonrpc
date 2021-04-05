@@ -1,5 +1,6 @@
 <?php
 
+    namespace EazyJsonRpc;
 
     /**
      * JSON RPC Server for Eaze
@@ -21,13 +22,13 @@
 
         /**
          * Exposed Instances
-         * @var object[]    namespace => method
+         * @var mixed    namespace => method
          */
-        protected $instances = array();
+        protected $instances = [ ];
 
         /**
          * Decoded Json Request
-         * @var object|array
+         * @var mixed|array
          */
         protected $request;
 
@@ -35,13 +36,13 @@
          * Array of Received Calls
          * @var array
          */
-        protected $calls = array();
+        protected $calls = [ ];
 
         /**
          * Array of Responses for Calls
          * @var array
          */
-        protected $response = array();
+        protected $response = [ ];
 
         /**
          * Has Calls Flag (not notifications)
@@ -59,9 +60,7 @@
          * Hidden Methods
          * @var array
          */
-        protected $hiddenMethods = array(
-            'execute', '__construct', 'registerinstance'
-        );
+        protected $hiddenMethods = [ 'execute', '__construct', 'registerinstance', ];
 
         /**
          * Content Type
@@ -76,29 +75,42 @@
         public $IsXDR = true;
 
         /**
+         * Allowed Cross-Domain Headers
+         * @var string[]
+         */
+        protected $allowedHeaders = [ 'x-requested-with', 'content-type' ];
+
+        /**
          * Max Batch Calls
          * @var int
          */
         public $MaxBatchCalls = 10;
 
+
+        /**
+         * Allow SMD Generation via ?smd
+         * @var bool
+         */
+        public $AllowSMD = true;
+
         /**
          * Error Messages
          * @var array
          */
-        protected $errorMessages = array(
+        protected static $errorMessages = [
             self::ParseError     => 'Parse error',
             self::InvalidRequest => 'Invalid Request',
             self::MethodNotFound => 'Method not found',
             self::InvalidParams  => 'Invalid params',
             self::InternalError  => 'Internal error',
-        );
+        ];
 
 
         /**
          * Cached Reflection Methods
-         * @var ReflectionMethod[]
+         * @var \ReflectionMethod[]
          */
-        private $reflectionMethods = array();
+        private $reflectionMethods = [ ];
 
 
         /**
@@ -109,7 +121,7 @@
             $error = null;
 
             do {
-                if ( array_key_exists( 'REQUEST_METHOD', $_SERVER ) && $_SERVER['REQUEST_METHOD'] != 'POST' ) {
+                if ( array_key_exists( 'REQUEST_METHOD', $_SERVER ) && $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
                     $error = self::InvalidRequest;
                     break;
                 };
@@ -121,14 +133,14 @@
                     break;
                 }
 
-                if ( $this->request === array() ) {
+                if ( $this->request === [ ] ) {
                     $error = self::InvalidRequest;
                     break;
                 }
 
                 // check for batch call
                 if ( is_array( $this->request ) ) {
-                    if( count( $this->request ) > $this->MaxBatchCalls ) {
+                    if ( count( $this->request ) > $this->MaxBatchCalls ) {
                         $error = self::InvalidRequest;
                         break;
                     }
@@ -151,22 +163,22 @@
          * @param null  $data
          * @return array
          */
-        private function getError( $code, $id = null, $data = null ) {
-            return array(
+        protected function getError( $code, $id = null, $data = null ) {
+            return [
                 'jsonrpc' => '2.0',
                 'id'      => $id,
-                'error'   => array(
+                'error'   => [
                     'code'    => $code,
-                    'message' => isset( $this->errorMessages[$code] ) ? $this->errorMessages[$code] : $this->errorMessages[self::InternalError],
+                    'message' => !empty( self::$errorMessages[$code] ) ? self::$errorMessages[$code] : self::$errorMessages[self::InternalError],
                     'data'    => $data,
-                ),
-            );
+                ],
+            ];
         }
 
 
         /**
          * Check for jsonrpc version and correct method
-         * @param object $call
+         * @param mixed $call
          * @return array|null
          */
         private function validateCall( $call ) {
@@ -181,13 +193,11 @@
                 }
 
                 // hack for inputEx smd tester
-                if ( property_exists( $call, 'version' ) ) {
-                    if ( $call->version == 'json-rpc-2.0' ) {
-                        $call->jsonrpc = '2.0';
-                    }
+                if ( property_exists( $call, 'version' ) && $call->version === 'json-rpc-2.0' ) {
+                    $call->jsonrpc = '2.0';
                 }
 
-                if ( !property_exists( $call, 'jsonrpc' ) || $call->jsonrpc != '2.0' ) {
+                if ( !property_exists( $call, 'jsonrpc' ) || $call->jsonrpc !== '2.0' ) {
                     $error = self::InvalidRequest;
                     break;
                 }
@@ -196,19 +206,19 @@
                 $methodInfo = explode( '.', $fullMethod, 2 );
                 $namespace  = array_key_exists( 1, $methodInfo ) ? $methodInfo[0] : '';
                 $method     = $namespace ? $methodInfo[1] : $fullMethod;
-                if ( !$method || !array_key_exists( $namespace, $this->instances ) || !method_exists( $this->instances[$namespace], $method ) || in_array( strtolower( $method ), $this->hiddenMethods ) ) {
+                if ( !$method || !array_key_exists( $namespace, $this->instances ) || !method_exists( $this->instances[$namespace], $method ) || in_array( strtolower( $method ), $this->hiddenMethods, true ) ) {
                     $error = self::MethodNotFound;
                     break;
                 }
 
                 if ( !array_key_exists( $fullMethod, $this->reflectionMethods ) ) {
-                    $this->reflectionMethods[$fullMethod] = new ReflectionMethod( $this->instances[$namespace], $method );
+                    $this->reflectionMethods[$fullMethod] = new \ReflectionMethod( $this->instances[$namespace], $method );
                 }
 
                 /** @var $params array */
                 $params     = property_exists( $call, 'params' ) ? $call->params : null;
                 $paramsType = gettype( $params );
-                if ( $params !== null && $paramsType != 'array' && $paramsType != 'object' ) {
+                if ( $params !== null && $paramsType !== 'array' && $paramsType !== 'object' ) {
                     $error = self::InvalidParams;
                     break;
                 }
@@ -251,7 +261,7 @@
             } while ( false );
 
             if ( $error ) {
-                $result = array( $error, $id, $data );
+                $result = [ $error, $id, $data ];
             }
 
             return $result;
@@ -263,16 +273,16 @@
          * @param $call
          * @return array|null
          */
-        private function processCall( $call ) {
+        protected function processCall( $call ) {
             $id        = property_exists( $call, 'id' ) ? $call->id : null;
-            $params    = property_exists( $call, 'params' ) ? $call->params : array();
+            $params    = property_exists( $call, 'params' ) ? $call->params : [ ];
             $result    = null;
             $namespace = substr( $call->method, 0, strpos( $call->method, '.' ) );
 
             try {
                 // set named parameters
                 if ( is_object( $params ) ) {
-                    $newParams = array();
+                    $newParams = [ ];
                     foreach ( $this->reflectionMethods[$call->method]->getParameters() as $param ) {
                         $paramName    = $param->getName();
                         $defaultValue = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
@@ -284,7 +294,7 @@
 
                 // invoke
                 $result = $this->reflectionMethods[$call->method]->invokeArgs( $this->instances[$namespace], $params );
-            } catch ( Exception $e ) {
+            } catch ( \Exception $e ) {
                 return $this->getError( $e->getCode(), $id, $e->getMessage() );
             }
 
@@ -292,22 +302,22 @@
                 return null;
             }
 
-            return array(
+            return [
                 'jsonrpc' => '2.0',
                 'result'  => $result,
                 'id'      => $id,
-            );
+            ];
         }
 
 
         /**
          * Create new Instance
-         * @param object $instance
+         * @param mixed $instance
          */
         public function __construct( $instance = null ) {
             if ( get_parent_class( $this ) ) {
                 $this->RegisterInstance( $this, '' );
-            } else if ( $instance ) {
+            } elseif ( $instance ) {
                 $this->RegisterInstance( $instance, '' );
             }
         }
@@ -315,13 +325,12 @@
 
         /**
          * Register Instance
-         * @param object $instance
+         * @param mixed  $instance
          * @param string $namespace default is empty string
          * @return $this
          */
         public function RegisterInstance( $instance, $namespace = '' ) {
-            $this->instances[$namespace]                = $instance;
-            $this->instances[$namespace]->errorMessages = $this->errorMessages;
+            $this->instances[$namespace] = $instance;
 
             return $this;
         }
@@ -333,8 +342,8 @@
         public function Execute() {
             do {
                 // check for SMD Discovery request
-                if ( array_key_exists( 'smd', $_GET ) ) {
-                    $this->response[] = $this->getServiceMap();
+                if ( $this->AllowSMD && array_key_exists( 'smd', $_GET ) && class_exists( '\EazyJsonRpc\BaseJsonRpcServerSmd' ) ) {
+                    $this->response[] = ( new BaseJsonRpcServerSmd( $this->instances, $this->hiddenMethods ) )->GetServiceMap();
                     $this->hasCalls   = true;
                     break;
                 }
@@ -376,7 +385,7 @@
                     // Allow Cross Domain Requests
                     if ( $this->IsXDR ) {
                         header( 'Access-Control-Allow-Origin: *' );
-                        header( 'Access-Control-Allow-Headers: x-requested-with, content-type' );
+                        header( 'Access-Control-Allow-Headers: ' . implode( ', ', $this->allowedHeaders ) );
                     }
                 }
 
@@ -387,106 +396,10 @@
 
 
         /**
-         * Get Doc Comment
-         * @param $comment
-         * @return string|null
-         */
-        private function getDocDescription( $comment ) {
-            $result = null;
-            if ( preg_match( '/\*\s+([^@]*)\s+/s', $comment, $matches ) ) {
-                $result = str_replace( '*', "\n", trim( trim( $matches[1], '*' ) ) );
-            }
-
-            return $result;
-        }
-
-
-        /**
-         * Get Service Map
-         * Maybe not so good realization of auto-discover via doc blocks
-         * @return array
-         */
-        private function getServiceMap() {
-            $result = array(
-                'transport'   => 'POST',
-                'envelope'    => 'JSON-RPC-2.0',
-                'SMDVersion'  => '2.0',
-                'contentType' => 'application/json',
-                'target'      => !empty( $_SERVER['REQUEST_URI'] ) ? substr( $_SERVER['REQUEST_URI'], 0, strpos( $_SERVER['REQUEST_URI'], '?' ) ) : '',
-                'services'    => array(),
-                'description' => '',
-            );
-
-            foreach( $this->instances as $namespace => $instance ) {
-                $rc = new ReflectionClass( $instance);
-
-                // Get Class Description
-                if ( $rcDocComment = $this->getDocDescription( $rc->getDocComment() ) ) {
-                    $result['description'] .= $rcDocComment . PHP_EOL;
-                }
-
-                foreach ( $rc->getMethods() as $method ) {
-                    /** @var ReflectionMethod $method */
-                    if ( !$method->isPublic() || in_array( strtolower( $method->getName() ), $this->hiddenMethods ) ) {
-                        continue;
-                    }
-
-                    $methodName = ( $namespace ? $namespace . '.' : '' ) . $method->getName();
-                    $docComment = $method->getDocComment();
-
-                    $result['services'][$methodName] = array( 'parameters' => array() );
-
-                    // set description
-                    if ( $rmDocComment = $this->getDocDescription( $docComment ) ) {
-                        $result['services'][$methodName]['description'] = $rmDocComment;
-                    }
-
-                    // @param\s+([^\s]*)\s+([^\s]*)\s*([^\s\*]*)
-                    $parsedParams = array();
-                    if ( preg_match_all( '/@param\s+([^\s]*)\s+([^\s]*)\s*([^\n\*]*)/', $docComment, $matches ) ) {
-                        foreach ( $matches[2] as $number => $name ) {
-                            $type = $matches[1][$number];
-                            $desc = $matches[3][$number];
-                            $name = trim( $name, '$' );
-
-                            $param               = array( 'type' => $type, 'description' => $desc );
-                            $parsedParams[$name] = array_filter( $param );
-                        }
-                    };
-
-                    // process params
-                    foreach ( $method->getParameters() as $parameter ) {
-                        $name  = $parameter->getName();
-                        $param = array( 'name' => $name, 'optional' => $parameter->isDefaultValueAvailable() );
-                        if ( array_key_exists( $name, $parsedParams ) ) {
-                            $param += $parsedParams[$name];
-                        }
-
-                        if ( $param['optional'] ) {
-                            $param['default'] = $parameter->getDefaultValue();
-                        }
-
-                        $result['services'][$methodName]['parameters'][] = $param;
-                    }
-
-                    // set return type
-                    if ( preg_match( '/@return\s+([^\s]+)\s*([^\n\*]+)/', $docComment, $matches ) ) {
-                        $returns                                    = array( 'type' => $matches[1], 'description' => trim( $matches[2] ) );
-                        $result['services'][$methodName]['returns'] = array_filter( $returns );
-                    }
-                }
-            }
-
-            return $result;
-        }
-
-
-        /**
          * Reset Local Class Vars after Execute
          */
         private function resetVars() {
-            $this->response = $this->calls = array();
+            $this->response = $this->calls = [ ];
             $this->hasCalls = $this->isBatchCall = false;
         }
-
     }

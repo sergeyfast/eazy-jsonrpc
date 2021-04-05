@@ -1,6 +1,7 @@
 <?php
-    include '../src/BaseJsonRpcServer.php';
-    include '../src/BaseJsonRpcClient.php';
+    include '../src/EazyJsonRpc/BaseJsonRpcServer.php';
+    include '../src/EazyJsonRpc/BaseJsonRpcServerSmd.php';
+    include '../src/EazyJsonRpc/BaseJsonRpcClient.php';
     include 'lib/DateTimeService.php';
     include 'lib/DateTimeServiceClient.php';
     include 'lib/DatePingServiceClient.php';
@@ -12,7 +13,7 @@
     function getCachedTimeZones() {
         static $result;
         if ( !$result ) {
-            $result = json_decode( json_encode( DateTimeZone::listAbbreviations() ), true );
+            $result = json_decode( json_encode( DateTimeZone::listIdentifiers( DateTimeZone::AMERICA ) ), true );
         }
 
         return $result;

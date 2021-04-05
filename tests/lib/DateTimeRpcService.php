@@ -1,4 +1,5 @@
 <?php
+    use EazyJsonRpc\BaseJsonRpcServer;
 
 
     /**
@@ -23,7 +24,7 @@
          * @return array
          */
         public function GetTimeZones() {
-            return DateTimeZone::listAbbreviations();
+            return DateTimeZone::listIdentifiers(DateTimeZone::AMERICA);
         }
 
 
@@ -42,12 +43,35 @@
 
         /**
          * Implode Function
-         * @param string $glue
-         * @param string[]  $pieces
+         * @param string   $glue
+         * @param string[] $pieces
          * @return string string
          */
         public function Implode( $glue, $pieces = array( '1', '2', '3' ) ) {
             return implode( $glue, $pieces );
         }
 
+
+        /**
+         * ComplexResult Function
+         * @result({
+         *      "id":{"type":"string" },
+         *      "firstName":{"type":"string"},
+         *      "lastName":{"type":"string"},
+         *      "age":{"type":"number","maximum":125,"minimum":0},
+         *      "address":{"type":"string"}
+         * })
+         *
+         * @return StdClass
+         */
+        public function ComplexResult() {
+            $result            = new StdClass();
+            $result->id        = 12;
+            $result->firstName = "John";
+            $result->lastName  = "Smith";
+            $result->age       = 24;
+            $result->address   = "Spb";
+
+            return $result;
+        }
     }

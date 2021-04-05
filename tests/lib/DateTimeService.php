@@ -23,7 +23,7 @@
          * @return array
          */
         public function GetTimeZones() {
-            return DateTimeZone::listAbbreviations();
+            return DateTimeZone::listIdentifiers( DateTimeZone::AMERICA );;
         }
 
 
@@ -42,12 +42,11 @@
 
         /**
          * Implode Function
-         * @param string $glue
+         * @param string   $glue
          * @param string[] $pieces
          * @return string string
          */
-        public function Implode( $glue, $pieces = array( "1", "2", "3" ) ) {
+        public function Implode( $glue, $pieces = [ '1', '2', '3' ] ) {
             return implode( $glue, $pieces );
         }
-
     }
