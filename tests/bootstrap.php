@@ -1,7 +1,7 @@
 <?php
-    include '../src/BaseJsonRpcServer.php';
-    include '../src/BaseJsonRpcServerSmd.php';
-    include '../src/BaseJsonRpcClient.php';
+    include '../src/EazyJsonRpc/BaseJsonRpcServer.php';
+    include '../src/EazyJsonRpc/BaseJsonRpcServerSmd.php';
+    include '../src/EazyJsonRpc/BaseJsonRpcClient.php';
     include 'lib/DateTimeService.php';
     include 'lib/DateTimeServiceClient.php';
     include 'lib/DatePingServiceClient.php';
