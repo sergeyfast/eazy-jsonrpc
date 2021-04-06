@@ -39,7 +39,7 @@
          * @param array  $smd SMD Schema
          * @param string $className
          */
-        public function __construct( $url, $smd, $className ) {
+        public function __construct( string $url, array $smd, string $className ) {
             $this->url       = $url;
             $this->smd       = $smd;
             $this->className = $className;
@@ -56,12 +56,22 @@
             $date        = date( 'd.m.Y G:i' );
             $result      = <<<php
 <?php
+/**
+* PHP RPC Client by JsonRpcClientGenerator
+* @date {$date}
+*/
+
+namespace JsonRpcClient;
+
+	use EazyJsonRpc\BaseJsonRpcClient;
+    use EazyJsonRpc\BaseJsonRpcException;
+    use EazyJsonRpc\HttpException;
+    use JsonMapper_Exception;
+
     /**
      * {$description}
-     * @author JsonRpcClientGenerator
-     * @date {$date}
      */
-    class {$this->className} extends \EazyJsonRpc\BaseJsonRpcClient {
+    class {$this->className} extends BaseJsonRpcClient {
 php;
 
             return $result;
@@ -73,85 +83,105 @@ php;
          * @param $methodData
          * @return string
          */
-        public function getMethod( $methodName, $methodData ) {
-            $newDocLine    = PHP_EOL . str_repeat( ' ', 9 ) . '*';
-            $description   = !empty( $methodData['description'] ) ? $methodData['description'] : $methodName;
+        public function getMethod( $methodName, $methodData ): string {
+            $newDocLine    = PHP_EOL . str_repeat( ' ', 8 ) . '*';
+            $description   = sprintf( '<%s> RPC method', $methodName );
+            $description   .= !empty( $methodData['description'] ) ? $newDocLine . ' ' . trim( $methodData['description'] ) : '';
+            $description   = str_replace( "\n", PHP_EOL, $description );
             $strDocParams  = '';
-            $strParamsArr  = [ ];
-            $callParamsArr = [ ];
+            $strParamsArr  = [];
+            $callParamsArr = [];
             $methodName    = str_replace( '.', '_', $methodName );
-
-            // Add Default Parameter = IsNotification
-            $methodData['parameters'][] = [
-                'name'        => 'isNotification',
-                'optional'    => 'true',
-                'type'        => 'bool',
-                'default'     => false,
-                'description' => 'set to true if call is notification',
-            ];
 
             // params
             if ( !empty( $methodData['parameters'] ) ) {
                 // Set Doc Params
                 foreach ( $methodData['parameters'] as $param ) {
-                    $name              = $param['name'];
-                    $strParam          = '$' . $name;
-                    $strDocParamsArr   = [ $newDocLine ];
-                    $strDocParamsArr[] = '@param';
-
+                    $name        = $param['name'];
+                    $strDocParam = $newDocLine;
+                    $strDocParam .= " @param";
                     if ( !empty( $param['type'] ) ) {
-                        $strDocParamsArr[] = $param['type'];
+                        $strDocParam .= " " . $this->getPhpType( $param['type'] );
+                    }
+                    $strParam      = $this->getPhpType( $param['type'] ) . ' $' . $name;
+                    $optionalParam = !empty( $param['optional'] );
+                    if ( $optionalParam ) {
+                        $strDocParam .= '|null';
                     }
 
-                    $strDocParamsArr[] = '$' . $name;
-                    if ( !empty( $param['optional'] ) ) {
-                        $strDocParamsArr[] = '[optional]';
+                    $strDocParam .= ' $' . $name;
+                    if ( $optionalParam ) {
+                        $strDocParam .= ' [optional]';
                     }
 
                     if ( !empty( $param['description'] ) ) {
-                        $strDocParamsArr[] = $param['description'];
+                        $strDocParam .= " " . $param['description'];
                     }
 
                     if ( array_key_exists( 'default', $param ) ) {
                         $strParam .= sprintf( ' = %s', var_export( $param['default'], true ) );
+                    } else {
+                        if ( $optionalParam ) {
+                            $strParam .= ' = null';
+                        }
                     }
 
-                    $strDocParams .= rtrim( implode( ' ', $strDocParamsArr ) );
+                    $strDocParams         .= rtrim( $strDocParam );
                     $strParamsArr[]       = $strParam;
                     $callParamsArr[$name] = sprintf( "'%s' => $%s", $name, $name );
                 }
             }
+            $strDocParams .= $newDocLine . ' @param bool $isNotification [optional] set to true if call is notification';
 
-            $strParams = ' ' . trim(
-                    str_replace(
-                        [ "\n", ',)', 'array (' ],
-                        [ '', ')', 'array(' ],
-                        implode( ', ', $strParamsArr )
-                    ), ', ' ) . ' ';
+            $strParams = str_replace(
+                [ "\n", ',)', 'array (' ],
+                [ '', ')', 'array(' ],
+                implode( ', ', $strParamsArr )
+            );
 
-            unset( $callParamsArr['isNotification'] );
-
+            $strParams      .= ', $isNotification = false ';
+            $strParams      = ' ' . trim( $strParams, ', ' ) . ' ';
+            $returnType     = '';
+            $optionalReturn = '';
+            $strDocReturns  = $newDocLine . ' @return mixed';
+            $strReturnType  = '';
             // returns
-            if ( !empty( $methodData['returns'] ) && !empty( $methodData['returns']['type'] ) && is_string( $methodData['returns']['type'] ) ) {
-                $strDocParams .= $newDocLine . ' @return \EazyJsonRpc\BaseJsonRpcCall (result: ' . $methodData['returns']['type'] . ')';
+            if ( !empty( $methodData['returns'] ) ) {
+                $strDocReturns = '';
+                if ( !empty( $methodData['returns']['type'] ) && is_string( $methodData['returns']['type'] ) ) {
+                    $returnType    = $this->getPhpType( $methodData['returns']['type'] );
+                    $strDocReturns .= $newDocLine . ' @return ' . $returnType;
+                }
+                if ( !empty( $methodData['returns']['optional'] ) ) {
+                    $optionalReturn = '?';
+                    $strDocReturns  .= '|null';
+                }
+                if ( !empty( $methodData['returns']['description'] ) ) {
+                    $strDocReturns .= ' ' . $methodData['returns']['description'];
+                }
+                if ( $returnType != 'mixed' ) {
+                    $strReturnType = sprintf( ': %s%s', $optionalReturn, $returnType );
+                }
             }
-
+            $strDocParams  .= $strDocReturns;
             $callParamsStr = implode( ', ', $callParamsArr );
             if ( !empty( $callParamsStr ) ) {
                 $callParamsStr = sprintf( ' %s ', $callParamsStr );
             }
 
 
-            $result = <<<php
+            return <<<php
         /**
-         * {$description}{$strDocParams}
-         */
-        public function {$methodName}({$strParams}) {
-            return \$this->call( __FUNCTION__, array({$callParamsStr}), \$this->getRequestId( \$isNotification ) );
+        * {$description}{$strDocParams}
+        * @throws BaseJsonRpcException
+        * @throws HttpException
+        * @throws JsonMapper_Exception
+        */
+        public function {$methodName}({$strParams})$strReturnType {
+            return \$this->call( __FUNCTION__, '$returnType', [{$callParamsStr}], \$this->getRequestId( \$isNotification ) );
         }
 
 php;
-            return $result;
 
         }
 
@@ -159,35 +189,57 @@ php;
         /**
          * Get Footer
          */
-        private function getFooter() {
-            $url     = $this->url;
-            $urlInfo = parse_url( $url );
+        private function getFooter(): string {
+            $rpcUrl  = $this->url;
+            $urlInfo = parse_url( $rpcUrl );
             if ( !empty( $urlInfo ) ) {
-                $url = sprintf( '%s://%s%s', $urlInfo['scheme'], $urlInfo['host'], $this->smd['target'] );
+                $rpcUrl = sprintf( '%s://%s%s', $urlInfo['scheme'], $urlInfo['host'], $this->smd['target'] );
             }
 
-            $result = <<<php
+            return <<<php
 
 
         /**
          * Get Instance
+         * @param \$url string
          * @return {$this->className}
          */
-        public static function GetInstance() {
-            return new self( '{$url}' );
+        public static function GetInstance( string \$url ): {$this->className} {
+            return new self( \$url );
         }
 
     }
 php;
+        }
 
-            return $result;
+
+        /**
+         * Return PHP type from SMD type
+         * @param string $smdType
+         * @return string
+         */
+        private function getPhpType( string $smdType ): string {
+            switch ( $smdType ) {
+                case "string":
+                    return "string";
+                case "object":
+                case "array":
+                    return "array";
+                case "boolean":
+                    return "bool";
+                case "float":
+                    return "float";
+                case "integer":
+                    return "int";
+            }
+            return "mixed";
         }
 
 
         /**
          * Save to File
          */
-        public function Generate() {
+        public function Generate(): string {
             $this->result = $this->getHeader();
 
             foreach ( $this->smd['services'] as $methodName => $methodData ) {
@@ -205,7 +257,7 @@ php;
          * Save To File
          * @return int
          */
-        public function SaveToFile() {
+        public function SaveToFile(): int {
             return file_put_contents( $this->className . '.php', $this->Generate() );
         }
     }

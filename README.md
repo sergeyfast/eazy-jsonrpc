@@ -11,21 +11,44 @@ SMD Schema available via /server.php?smd
 __Public Namespace__
 
 * Inherits your exposed class from BaseJsonRpcServer or create `new BaseJsonRpcServer( $instance );`
-* `$server->execute();`
+* `$server->Execute();`
 
 __Multiple Namespaces__
 
 * Create `new BaseJsonRpcServer();`
 * Call `$server->RegisterInstance( $instance, $namespace )` as many times as you need
-* `$server->execute();`
+* `$server->Execute();`
 
 
 Client
 ------
 
-* Generate Client from SMD Schema from generator/ `php JsonRpcClientGenerator <smd-file> <class-name>`
-* Create client instance `$client = <class-name>::GetInstance();` or `$client = new <class-name>( <url> );`
-* Use it `$result = $client->Method()`; :)
+* Generate Client from SMD Schema from generator/ `php JsonRpcClientGenerator.php <smd-file> <class-name>`
+* Use it:
+```
+$client = <class-name>::GetInstance(<url>);
+
+try {  
+$result = $client->Method(); 
+} catch (BaseJsonRpcException $e) {
+  // work with exception
+}
+```
+
+Client with typed returns by rpcgen
+------
+
+* Generate Client from SMD Schema with [rpcgen](https://github.com/vmkteam/rpcgen) and save it to `RpcClient.php`
+* Use it:
+```
+$client = RpcClient::GetInstance(<url>);
+
+try {  
+$result = $client->Method(); 
+} catch (BaseJsonRpcException $e) {
+  // work with exception
+}
+```
 
 Doc
 ------

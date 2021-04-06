@@ -33,8 +33,9 @@
          * @param string $timezone
          * @param string $format
          * @return string
+         * @throws Exception
          */
-        public function GetRelativeTime( $text, $timezone = 'UTC', $format = 'c' ) {
+        public function GetRelativeTime( string $text, $timezone = 'UTC', $format = 'c' ): string {
             $result = new DateTime( $text, new DateTimeZone( $timezone ) );
             return $result->format( $format );
         }

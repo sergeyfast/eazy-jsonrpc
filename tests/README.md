@@ -1,7 +1,7 @@
 eazy-jsonrpc tests
 ============
 
-To pass all tests you should create vhost http://eazyjsonrpc/ to eazy-jsonrpc folder
+To pass all tests just run `php -S localhost:8000` in eazy-jsonrpc folder
 
-Tests are using http://eazyjsonrpc/tests/example-server.php url.
+Tests are using `http://localhost:8000/tests/example-server.php` url.
 
