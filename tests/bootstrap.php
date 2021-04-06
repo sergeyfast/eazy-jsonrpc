@@ -2,9 +2,9 @@
     include '../src/EazyJsonRpc/BaseJsonRpcServer.php';
     include '../src/EazyJsonRpc/BaseJsonRpcServerSmd.php';
     include '../src/EazyJsonRpc/BaseJsonRpcClient.php';
+    include 'JsonRpcClient/DateTimeServiceClient.php';
+    include 'JsonRpcClient/DatePingServiceClient.php';
     include 'lib/DateTimeService.php';
-    include 'lib/DateTimeServiceClient.php';
-    include 'lib/DatePingServiceClient.php';
     include 'lib/DateTimeRpcService.php';
 
     /**

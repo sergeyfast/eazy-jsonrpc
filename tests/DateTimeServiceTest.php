@@ -1,4 +1,6 @@
 <?php
+    include 'DateTimeRpcServiceTest.php';
+
     use EazyJsonRpc\BaseJsonRpcServer;
 
 

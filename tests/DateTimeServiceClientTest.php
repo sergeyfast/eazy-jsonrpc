@@ -1,5 +1,8 @@
 <?php
 
+    use EazyJsonRpc\BaseJsonRpcException;
+    use JsonRpcClient\DateTimeServiceClient;
+
 
     /**
      * @group Client
@@ -11,35 +14,35 @@
          */
         protected $object;
 
-        protected $url = 'http://eazyjsonrpc/tests/example-server.php?v3';
+        protected $url = 'http://localhost:8000/tests/example-server.php?v3';
 
 
         public function setUp() {
-            $this->object = new DateTimeServiceClient( $this->url );
+            $this->object = DateTimeServiceClient::GetInstance( $this->url );
         }
 
 
         public function testGetTime() {
             $response = $this->object->GetTime();
-            static::assertEmpty( $response->Error );
-            static::assertNotEmpty( $response->Result );
+            static::assertNotEmpty( $response );
             $response = $this->object->GetTime( 'UTC', 'd.m.Y' );
-            static::assertAttributeEquals( date( 'd.m.Y' ), 'Result', $response );
+            static::assertEquals( date( 'd.m.Y' ), $response );
         }
 
 
         public function testGetTimeZones() {
             $response = $this->object->GetTimeZones();
-            static::assertEquals( getCachedTimeZones(), $response->Result );
+            static::assertEquals( getCachedTimeZones(), $response );
         }
 
 
         public function testGetRelativeTimeError() {
-            $response = $this->object->GetRelativeTime( '-0000-00-00', '1' );
-            static::assertEmpty( $response->Result );
-            static::assertNotEmpty( $response->Error );
-            static::assertTrue( $response->HasError() );
-
+            try {
+                $response = $this->object->GetRelativeTime( '-0000-00-00', '1' );
+                static::assertEmpty( $response );
+            } catch ( BaseJsonRpcException $e ) {
+                static::assertNotEmpty( $e );
+            }
         }
 
 
@@ -47,18 +50,15 @@
             static::assertTrue( $this->object->BeginBatch() );
             static::assertFalse( $this->object->BeginBatch() );
 
-            $r1 = $this->object->GetRelativeTime( 'now' );
-            $r2 = $this->object->GetRelativeTime( 'yesterday' );
-            $r3 = $this->object->GetRelativeTime( 'yesterday', 'UTC', 'c', true );
-            $r4 = $this->object->GetRelativeTime( 'yesterday' );
+            $this->object->GetRelativeTime( 'now' );
+            $this->object->GetRelativeTime( 'exception' );
+            $this->object->GetRelativeTime( 'yesterday' );
+            $this->object->GetRelativeTime( 'yesterday' );
 
-            static::assertEmpty( $r2->Result );
-
-            static::assertTrue( $this->object->CommitBatch() );
-            static::assertFalse( $this->object->CommitBatch() );
-
-            static::assertNotEmpty( $r2->Result );
-            static::assertEmpty( $r3->Result );
-            static::assertEquals( $r4->Result, $r2->Result );
+            list ( $r1, $r2, $r3, $r4 ) = $this->object->CommitBatch();
+            static::assertNotEmpty( $r1 );
+            static::assertEmpty( $this->object->CommitBatch() );
+            static::assertInstanceOf( BaseJsonRpcException::class, $r2 );
+            static::assertEquals( $r3, $r4 );
         }
     }
