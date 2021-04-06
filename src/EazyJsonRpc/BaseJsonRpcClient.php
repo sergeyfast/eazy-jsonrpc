@@ -2,6 +2,9 @@
 
     namespace EazyJsonRpc;
 
+    use GuzzleHttp\Client;
+    use GuzzleHttp\Exception\GuzzleException;
+    use GuzzleHttp\RequestOptions;
     use JsonMapper;
 
     /**
@@ -20,14 +23,10 @@
         public $UseObjectsInResults = false;
 
         /**
-         * Curl Options
+         * Guzzle Client Options
          * @var array
          */
-        public $CurlOptions = [
-            CURLOPT_POST           => 1,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_HTTPHEADER     => [ 'Content-Type: application/json' ],
-        ];
+        private $ClientOptions = [];
 
         /**
          * Current Request id
@@ -40,6 +39,17 @@
          * @var bool
          */
         private $isBatchCall = false;
+
+        /**
+         * Guzzle HTTP Client
+         * @var Client
+         */
+        private $client;
+
+        /**
+         * @var string
+         */
+        private $serverUrl;
 
         /**
          * Batch Calls
@@ -59,7 +69,10 @@
          * @param string $serverUrl
          */
         public function __construct( string $serverUrl ) {
-            $this->CurlOptions[CURLOPT_URL] = $serverUrl;
+            $opts            = [ RequestOptions::TIMEOUT => 2.0 ];
+            $opts            = array_merge( $opts, $this->ClientOptions );
+            $this->client    = new Client( $opts );
+            $this->serverUrl = $serverUrl;
         }
 
 
@@ -92,6 +105,7 @@
         /**
          * Commit Batch
          * @return array
+         * @throws GuzzleException
          */
         public function CommitBatch(): array {
             if ( !$this->isBatchCall || ( !$this->batchCalls && !$this->batchNotifications ) ) {
@@ -134,6 +148,7 @@
          * @param string $returnType
          * @return mixed
          * @throws BaseJsonRpcException
+         * @throws GuzzleException
          * @throws \JsonMapper_Exception
          */
         protected function call( string $method, string $returnType, array $parameters = [], $id = null ) {
@@ -163,6 +178,7 @@
          * @param array  $parameters
          * @return BaseJsonRpcCall
          * @throws BaseJsonRpcException
+         * @throws GuzzleException
          * @throws \JsonMapper_Exception
          */
         public function __call( string $method, array $parameters = [] ) {
@@ -174,31 +190,20 @@
          * Process Calls
          * @param BaseJsonRpcCall[] $calls
          * @return mixed
-         * @throws HttpException
+         * @throws GuzzleException
          */
         protected function processCalls( array $calls ): bool {
             // Prepare Data
             $singleCall = !$this->isBatchCall ? reset( $calls ) : null;
             $result     = $this->batchCalls ? array_values( array_map( '\EazyJsonRpc\BaseJsonRpcCall::GetCallData', $calls ) ) : BaseJsonRpcCall::GetCallData( $singleCall );
 
-            // Send Curl Request
-            $options = $this->CurlOptions + [ CURLOPT_POSTFIELDS => json_encode( $result ) ];
-            $ch      = curl_init();
-            curl_setopt_array( $ch, $options );
-
-            $data = curl_exec( $ch );
-
-            if ( curl_errno( $ch ) ) {
-                throw new HttpException( 'Error with curl response: ' . curl_error( $ch ) );
+            try {
+                $resp = $this->client->post( $this->serverUrl, [ RequestOptions::JSON => $result ] );
+            } catch ( GuzzleException $e ) {
+                throw $e;
             }
 
-            $httpCode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-            if ( $httpCode != 200 ) {
-                throw new HttpException( 'Error with http response, got http status: ' . $httpCode );
-            }
-
-            $data = json_decode( $data, !$this->UseObjectsInResults );
-            curl_close( $ch );
+            $data = json_decode( $resp->getBody()->getContents(), !$this->UseObjectsInResults );
             if ( $data === null ) {
                 return false;
             }

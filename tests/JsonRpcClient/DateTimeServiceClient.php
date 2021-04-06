@@ -1,14 +1,14 @@
 <?php
 /**
 * PHP RPC Client by JsonRpcClientGenerator
-* @date 06.04.2021 12:02
+* @date 06.04.2021 13:23
 */
 
 namespace JsonRpcClient;
 
 	use EazyJsonRpc\BaseJsonRpcClient;
     use EazyJsonRpc\BaseJsonRpcException;
-    use EazyJsonRpc\HttpException;
+    use GuzzleHttp\Exception\GuzzleException;
     use JsonMapper_Exception;
 
     /**
@@ -25,7 +25,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function GetTime( string $timezone = 'UTC', string $format = 'c', $isNotification = false ): string {
@@ -39,7 +39,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function GetTimeZones( $isNotification = false ): array {
@@ -56,7 +56,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function GetRelativeTime( string $text, string $timezone = 'UTC', string $format = 'c', $isNotification = false ): string {
@@ -72,7 +72,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string string
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function Implode( string $glue, array $pieces = array(  0 => '1',  1 => '2',  2 => '3'), $isNotification = false ): string {
@@ -86,7 +86,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function ComplexResult( $isNotification = false ): array {
@@ -99,7 +99,7 @@ namespace JsonRpcClient;
          * @param $url string
          * @return DateTimeServiceClient
          */
-        public static function GetInstance( string $url = 'http://localhost/tests/example-server.php' ): DateTimeServiceClient {
+        public static function GetInstance( string $url ): DateTimeServiceClient {
             return new self( $url );
         }
 

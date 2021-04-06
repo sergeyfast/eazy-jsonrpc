@@ -65,7 +65,7 @@ namespace JsonRpcClient;
 
 	use EazyJsonRpc\BaseJsonRpcClient;
     use EazyJsonRpc\BaseJsonRpcException;
-    use EazyJsonRpc\HttpException;
+    use GuzzleHttp\Exception\GuzzleException;
     use JsonMapper_Exception;
 
     /**
@@ -174,7 +174,7 @@ php;
         /**
         * {$description}{$strDocParams}
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function {$methodName}({$strParams})$strReturnType {

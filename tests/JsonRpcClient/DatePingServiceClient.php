@@ -1,14 +1,14 @@
 <?php
 /**
 * PHP RPC Client by JsonRpcClientGenerator
-* @date 06.04.2021 12:02
+* @date 06.04.2021 13:23
 */
 
 namespace JsonRpcClient;
 
 	use EazyJsonRpc\BaseJsonRpcClient;
     use EazyJsonRpc\BaseJsonRpcException;
-    use EazyJsonRpc\HttpException;
+    use GuzzleHttp\Exception\GuzzleException;
     use JsonMapper_Exception;
 
     /**
@@ -27,7 +27,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function date_GetTime( string $timezone = 'UTC', string $format = 'c', $isNotification = false ): string {
@@ -41,7 +41,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function date_GetTimeZones( $isNotification = false ): array {
@@ -58,7 +58,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function date_GetRelativeTime( string $text, string $timezone = 'UTC', string $format = 'c', $isNotification = false ): string {
@@ -74,7 +74,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string string
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function date_Implode( string $glue, array $pieces = array(  0 => '1',  1 => '2',  2 => '3'), $isNotification = false ): string {
@@ -89,7 +89,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return string pong
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function ping_Ping( string $message = 'pong', $isNotification = false ): string {
@@ -103,7 +103,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array News
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function news_GetList( $isNotification = false ): array {
@@ -118,7 +118,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array News
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function news_GetById( int $id, $isNotification = false ): array {
@@ -132,7 +132,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array Category Tag
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function news_GetTags( $isNotification = false ): array {
@@ -146,7 +146,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function news_Categories( $isNotification = false ): array {
@@ -163,7 +163,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array News
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function news_Search( array $s, int $page, int $count = 50, $isNotification = false ): array {
@@ -179,7 +179,7 @@ namespace JsonRpcClient;
         * @param bool $isNotification [optional] set to true if call is notification
         * @return array
         * @throws BaseJsonRpcException
-        * @throws HttpException
+        * @throws GuzzleException
         * @throws JsonMapper_Exception
         */
         public function news_NameValue( array $nv, int $c = null, $isNotification = false ): array {
@@ -192,7 +192,7 @@ namespace JsonRpcClient;
          * @param $url string
          * @return DatePingServiceClient
          */
-        public static function GetInstance( string $url = 'http://localhost/tests/example-server.php' ): DatePingServiceClient {
+        public static function GetInstance( string $url ): DatePingServiceClient {
             return new self( $url );
         }
 
