@@ -232,9 +232,10 @@
          * @throws \JsonMapper_Exception
          */
         private function convertResult( BaseJsonRpcCall $call, string $returnType ) {
-            $result                  = null;
-            $mapper                  = new JsonMapper();
-            $mapper->bEnforceMapType = false;
+            $result                   = null;
+            $mapper                   = new JsonMapper();
+            $mapper->bEnforceMapType  = false;
+            $mapper->bStrictNullTypes = false;
             switch ( true ) {
                 case substr( $returnType, -2 ) == '[]':
                     $result = $mapper->mapArray( $call->Result, [], rtrim( $returnType, '[]' ) );
