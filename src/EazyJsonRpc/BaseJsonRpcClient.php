@@ -26,7 +26,7 @@
          * Guzzle Client Options
          * @var array
          */
-        private $ClientOptions = [];
+        public $ClientOptions = [];
 
         /**
          * Current Request id
