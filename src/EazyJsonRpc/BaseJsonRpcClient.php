@@ -23,12 +23,6 @@
         public $UseObjectsInResults = false;
 
         /**
-         * Guzzle Client Options
-         * @var array
-         */
-        public $ClientOptions = [];
-
-        /**
          * Current Request id
          * @var int
          */
@@ -68,9 +62,9 @@
          * Create New JsonRpc client
          * @param string $serverUrl
          */
-        public function __construct( string $serverUrl ) {
+        public function __construct( string $serverUrl, array $clientOptions = [] ) {
             $opts            = [ RequestOptions::TIMEOUT => 2.0 ];
-            $opts            = array_merge( $opts, $this->ClientOptions );
+            $opts            = array_merge( $opts, $clientOptions );
             $this->client    = new Client( $opts );
             $this->serverUrl = $serverUrl;
         }
